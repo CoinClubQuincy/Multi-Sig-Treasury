@@ -14,15 +14,28 @@ abstract contract Treasury is ERC1155{
     //Launch Contract and Keys
     constructor(uint _totalKeys, uint _VotesNeededToPass,string memory URI)ERC1155(URI){
         require(_VotesNeededToPass <= _totalKeys);
+        KEYS =_totalKeys;
         for(i=0; i < _totalKeys; i++){
             keys[i] = KeyListings(i,true);
+            _mint(msg.sender, i, 1, "");
         }
-        _mint(msg.sender, i, _totalKeys, "");
+        
     }
     //modifier checks to see if user has a key before executing the function
     modifier CheckKeys{
-        require(balanceOf(msg.sender,0) > 0);
+        require(checkTokens(msg.sender) == true);
         _;
+    }
+    //internal function checks to see if user has key
+    function checkTokens(address _user) internal returns(bool){
+        uint i;
+        for(i=0; i <= KEYS; i++){
+            if(balanceOf(_user,i) > 0){
+                return true;
+            } else if(i == KEYS){
+                return false;
+            }
+        }       
     }
 
     function submitTransaction() public CheckKeys returns(bool){}
