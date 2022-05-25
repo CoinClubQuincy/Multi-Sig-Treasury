@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 contract MultiSigTreasury is ERC1155{
     uint KEYS =0;
     uint public TotalTransactions=0;
+    uint public VotesNeededToPass;
 
     mapping(uint => KeyListings) keys;
     mapping(string => VoteOnTransaction) vote;
@@ -22,7 +23,7 @@ contract MultiSigTreasury is ERC1155{
         bool exist;
     }
     struct MultiSigTransaction{
-        uint ammount;
+        uint amount;
         address toAddress;
         string topic;
         string messege;
@@ -35,6 +36,7 @@ contract MultiSigTreasury is ERC1155{
     constructor(uint _totalKeys, uint _VotesNeededToPass,string memory URI)ERC1155(URI){
         require(_VotesNeededToPass <= _totalKeys);
         KEYS =_totalKeys;
+        VotesNeededToPass = _VotesNeededToPass;
         uint countKeys;
         for(countKeys=0; countKeys < _totalKeys; countKeys++){
             keys[countKeys] = KeyListings(countKeys,true);
@@ -59,9 +61,11 @@ contract MultiSigTreasury is ERC1155{
         }       
     }
     //check vote summition total
-    function checkTransactions() internal returns(bool){
+    function checkTotal(uint _TransactionNumber) internal returns(bool){
         //set up voting count
-        if(true){
+        if(MSTrans[_TransactionNumber].pass >= VotesNeededToPass){
+            address _address = MSTrans[_TransactionNumber].toAddress;
+            payable(_address).transfer(MSTrans[_TransactionNumber].amount);
             return true;
         } else {
             return false;
@@ -74,9 +78,9 @@ contract MultiSigTreasury is ERC1155{
         return (vote[checkStatus].Key,vote[checkStatus].status);
     }
     //view previouse & pending transactions
-    function viewTransaction(uint _transactionNumb) public CheckKeys returns(uint,address,string memory,string memory){
+    function viewTransaction(uint _transactionNumb) public CheckKeys returns(uint,address,string memory,string memory,bool,uint){
         require(_transactionNumb <= TotalTransactions, " _transactionNumb cant exceed the totalTransactions");
-        return (MSTrans[_transactionNumb].ammount ,MSTrans[_transactionNumb].toAddress ,MSTrans[_transactionNumb].topic ,MSTrans[_transactionNumb].messege);
+        return (MSTrans[_transactionNumb].amount ,MSTrans[_transactionNumb].toAddress ,MSTrans[_transactionNumb].topic ,MSTrans[_transactionNumb].messege,MSTrans[_transactionNumb].status ,MSTrans[_transactionNumb].pass);
     }
     //make a submittion to move funds to the contract
     function submitTransaction(uint _ammount, address _toAddress,string memory _topic,string memory _messege) public CheckKeys returns(bool){
@@ -98,6 +102,7 @@ contract MultiSigTreasury is ERC1155{
         }else{
             MSTrans[_TransactionNumber].fail++;
         }
+        checkTotal(_TransactionNumber);
         return (MSTrans[_TransactionNumber].pass,MSTrans[_TransactionNumber].fail);
     }
     function executeTransaction() public CheckKeys returns(bool){}
