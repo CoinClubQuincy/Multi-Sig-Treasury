@@ -2,7 +2,7 @@ pragma solidity ^0.8.10;
 // SPDX-License-Identifier: MIT
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 
-abstract contract Treasury is ERC1155{
+contract MultiSigTreasury is ERC1155{
     uint KEYS =0;
     uint public TotalTransactions=0;
     uint private i;
@@ -10,6 +10,7 @@ abstract contract Treasury is ERC1155{
     mapping(uint => KeyListings) keys;
     mapping(uint => VoteOnTransaction) vote;
     mapping(uint => MultiSigTransaction) MSTrans;
+    
     //list Keys
     struct KeyListings{
         uint count;
@@ -25,6 +26,8 @@ abstract contract Treasury is ERC1155{
         address toAddress;
         string topic;
         string messege;
+        bool status;
+        VoteOnTransaction vote;
     }
     //Launch Contract and Keys
     constructor(uint _totalKeys, uint _VotesNeededToPass,string memory URI)ERC1155(URI){
@@ -57,15 +60,24 @@ abstract contract Treasury is ERC1155{
         require(_transactionNumb <= TotalTransactions, " _transactionNumb cant exceed the totalTransactions");
         return (MSTrans[_transactionNumb].ammount ,MSTrans[_transactionNumb].toAddress ,MSTrans[_transactionNumb].topic ,MSTrans[_transactionNumb].messege);
     }
-    //view transactions in contract
-    function checkTransactions() internal returns(uint,uint){}
+    //check vote summition total
+    function checkTransactions() internal returns(bool){
+        if(true){
+            return true;
+        } else {
+            return false;
+        }
+    }
     //make a submittion to move funds to the contract
     function submitTransaction(uint _ammount, address _toAddress,string memory _topic,string memory _messege) public CheckKeys returns(bool){
-        MSTrans[TotalTransactions] = MultiSigTransaction(_ammount,_toAddress,_topic,_messege);
+        vote[TotalTransactions] = VoteOnTransaction(1,false);
+        MSTrans[TotalTransactions] = MultiSigTransaction(_ammount,_toAddress,_topic,_messege,false,vote[TotalTransactions]);
         TotalTransactions++;
         return true;
     }
-    function confirmTransaction(uint _TransactionNumber, bool _vote) public CheckKeys returns(bool,bool){}
+    function confirmTransaction(uint _TransactionNumber, bool _vote,uint _keyNumb) public CheckKeys returns(bool,bool){
+        require(balanceOf(msg.sender,_keyNumb) >= 1);
+    }
     function executeTransaction() public CheckKeys returns(bool){}
     function revokeConfirmation() public CheckKeys returns(bool){}
 }
