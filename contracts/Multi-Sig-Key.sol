@@ -65,6 +65,7 @@ contract MultiSigTreasury is ERC1155{
         //set up voting count
         if(MSTrans[_TransactionNumber].pass >= VotesNeededToPass){
             address _address = MSTrans[_TransactionNumber].toAddress;
+            MSTrans[_TransactionNumber].status = true;
             payable(_address).transfer(MSTrans[_TransactionNumber].amount);
             return true;
         } else {
@@ -90,6 +91,7 @@ contract MultiSigTreasury is ERC1155{
     }
     //key holders can cast votes as a key for a transaction
     function confirmTransaction(uint _TransactionNumber, bool _vote,uint _keyNumb) public CheckKeys returns(uint,uint){
+        require(MSTrans[_TransactionNumber].status == false, "Contract Transaction Completed...no futher confrimation votes can be cast");
         string memory castVote;
         castVote = string(abi.encodePacked(_TransactionNumber,"-",_keyNumb));
         
