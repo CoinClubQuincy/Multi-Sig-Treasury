@@ -19,6 +19,7 @@ contract MultiSigTreasury is ERC1155{
     struct VoteOnTransaction{
         uint Key;
         bool status;
+        bool exist;
     }
     struct MultiSigTransaction{
         uint ammount;
@@ -84,14 +85,20 @@ contract MultiSigTreasury is ERC1155{
         return true;
     }
     //key holders can cast votes as a key for a transaction
-    function confirmTransaction(string memory _TransactionNumber, bool _vote,uint _keyNumb) public CheckKeys returns(bool,bool){
+    function confirmTransaction(uint _TransactionNumber, bool _vote,uint _keyNumb) public CheckKeys returns(uint,uint){
         string memory castVote;
-        require(balanceOf(msg.sender,_keyNumb)>0, "you must hold key");
         castVote = string(abi.encodePacked(_TransactionNumber,"-",_keyNumb));
-        vote[castVote] = VoteOnTransaction(_keyNumb,_vote);
-        //check if vote has been made
-        //cast vote
-        //show vote status
+        
+        require(vote[castVote].exist == false, "vote has been cast already");
+        
+        vote[castVote] = VoteOnTransaction(_keyNumb,_vote,true);
+        
+        if(_vote== true){
+            MSTrans[_TransactionNumber].pass++;
+        }else{
+            MSTrans[_TransactionNumber].fail++;
+        }
+        return (MSTrans[_TransactionNumber].pass,MSTrans[_TransactionNumber].fail);
     }
     function executeTransaction() public CheckKeys returns(bool){}
     function revokeConfirmation() public CheckKeys returns(bool){}
