@@ -5,10 +5,9 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 contract MultiSigTreasury is ERC1155{
     uint KEYS =0;
     uint public TotalTransactions=0;
-    uint private i;
 
     mapping(uint => KeyListings) keys;
-    mapping(uint => VoteOnTransaction) vote;
+    mapping(string => VoteOnTransaction) vote;
     mapping(uint => MultiSigTransaction) MSTrans;
     
     //list Keys
@@ -27,15 +26,18 @@ contract MultiSigTreasury is ERC1155{
         string topic;
         string messege;
         bool status;
-        VoteOnTransaction vote;
+        uint pass;
+        uint fail;
+        uint voteCount;
     }
     //Launch Contract and Keys
     constructor(uint _totalKeys, uint _VotesNeededToPass,string memory URI)ERC1155(URI){
         require(_VotesNeededToPass <= _totalKeys);
         KEYS =_totalKeys;
-        for(i=0; i < _totalKeys; i++){
-            keys[i] = KeyListings(i,true);
-            _mint(msg.sender, i, 1, "");
+        uint countKeys;
+        for(countKeys=0; countKeys < _totalKeys; countKeys++){
+            keys[countKeys] = KeyListings(countKeys,true);
+            _mint(msg.sender, countKeys, 1, "");
         }
     }
     //modifier checks to see if user has a key before executing the function
@@ -55,28 +57,41 @@ contract MultiSigTreasury is ERC1155{
             }
         }       
     }
-    //view previouse & pending transactions
-    function viewTransaction(uint _transactionNumb) public CheckKeys returns(uint,address,string memory,string memory){
-        require(_transactionNumb <= TotalTransactions, " _transactionNumb cant exceed the totalTransactions");
-        return (MSTrans[_transactionNumb].ammount ,MSTrans[_transactionNumb].toAddress ,MSTrans[_transactionNumb].topic ,MSTrans[_transactionNumb].messege);
-    }
     //check vote summition total
     function checkTransactions() internal returns(bool){
+        //set up voting count
         if(true){
             return true;
         } else {
             return false;
         }
     }
+    //checks the voting status of a particular vote on a transactions
+    function checkVote(string memory _keyNumb, string memory _transNumb) public CheckKeys returns(uint,bool){
+        string memory checkStatus;
+        checkStatus = string(abi.encodePacked(_transNumb,"-",_keyNumb));
+        return (vote[checkStatus].Key,vote[checkStatus].status);
+    }
+    //view previouse & pending transactions
+    function viewTransaction(uint _transactionNumb) public CheckKeys returns(uint,address,string memory,string memory){
+        require(_transactionNumb <= TotalTransactions, " _transactionNumb cant exceed the totalTransactions");
+        return (MSTrans[_transactionNumb].ammount ,MSTrans[_transactionNumb].toAddress ,MSTrans[_transactionNumb].topic ,MSTrans[_transactionNumb].messege);
+    }
     //make a submittion to move funds to the contract
     function submitTransaction(uint _ammount, address _toAddress,string memory _topic,string memory _messege) public CheckKeys returns(bool){
-        vote[TotalTransactions] = VoteOnTransaction(1,false);
-        MSTrans[TotalTransactions] = MultiSigTransaction(_ammount,_toAddress,_topic,_messege,false,vote[TotalTransactions]);
+        MSTrans[TotalTransactions] = MultiSigTransaction(_ammount,_toAddress,_topic,_messege,false,0,0,0);
         TotalTransactions++;
         return true;
     }
-    function confirmTransaction(uint _TransactionNumber, bool _vote,uint _keyNumb) public CheckKeys returns(bool,bool){
-        require(balanceOf(msg.sender,_keyNumb) >= 1);
+    //key holders can cast votes as a key for a transaction
+    function confirmTransaction(string memory _TransactionNumber, bool _vote,uint _keyNumb) public CheckKeys returns(bool,bool){
+        string memory castVote;
+        require(balanceOf(msg.sender,_keyNumb)>0, "you must hold key");
+        castVote = string(abi.encodePacked(_TransactionNumber,"-",_keyNumb));
+        vote[castVote] = VoteOnTransaction(_keyNumb,_vote);
+        //check if vote has been made
+        //cast vote
+        //show vote status
     }
     function executeTransaction() public CheckKeys returns(bool){}
     function revokeConfirmation() public CheckKeys returns(bool){}
