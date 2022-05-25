@@ -64,9 +64,7 @@ contract MultiSigTreasury is ERC1155{
     function checkTotal(uint _TransactionNumber) internal returns(bool){
         //set up voting count
         if(MSTrans[_TransactionNumber].pass >= VotesNeededToPass){
-            address _address = MSTrans[_TransactionNumber].toAddress;
-            MSTrans[_TransactionNumber].status = true;
-            payable(_address).transfer(MSTrans[_TransactionNumber].amount);
+            executeTransaction(_TransactionNumber);
             return true;
         } else {
             return false;
@@ -107,6 +105,12 @@ contract MultiSigTreasury is ERC1155{
         checkTotal(_TransactionNumber);
         return (MSTrans[_TransactionNumber].pass,MSTrans[_TransactionNumber].fail);
     }
-    function executeTransaction() public CheckKeys returns(bool){}
+    //Executes payment ticket after parties have voted on it
+    function executeTransaction(uint _TransactionNumber) internal returns(bool){
+        address _address = MSTrans[_TransactionNumber].toAddress;
+        MSTrans[_TransactionNumber].status = true;
+        payable(_address).transfer(MSTrans[_TransactionNumber].amount);
+        return true;
+    }
     function revokeConfirmation() public CheckKeys returns(bool){}
 }
