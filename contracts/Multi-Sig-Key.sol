@@ -4,8 +4,9 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 
 abstract contract Treasury is ERC1155{
     uint KEYS =0;
-    uint TotalTransactions=0;
-    uint i;
+    uint public TotalTransactions=0;
+    uint private i;
+
     mapping(uint => KeyListings) keys;
     mapping(uint => VoteOnTransaction) vote;
     mapping(uint => MultiSigTransaction) MSTrans;
@@ -53,6 +54,7 @@ abstract contract Treasury is ERC1155{
     }
     //view previouse & pending transactions
     function viewTransaction(uint _transactionNumb) public CheckKeys returns(uint,address,string memory,string memory){
+        require(_transactionNumb <= TotalTransactions, " _transactionNumb cant exceed the totalTransactions");
         return (MSTrans[_transactionNumb].ammount ,MSTrans[_transactionNumb].toAddress ,MSTrans[_transactionNumb].topic ,MSTrans[_transactionNumb].messege);
     }
     //view transactions in contract
