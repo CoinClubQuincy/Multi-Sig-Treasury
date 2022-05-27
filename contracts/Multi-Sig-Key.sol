@@ -31,6 +31,7 @@ contract MultiSigTreasury is ERC1155{
         uint pass;
         uint fail;
         uint voteCount;
+        bool exist;
     }
     //Launch Contract and Keys
     constructor(uint _totalKeys, uint _VotesNeededToPass,string memory URI)ERC1155(URI){
@@ -83,7 +84,7 @@ contract MultiSigTreasury is ERC1155{
     }
     //make a submittion to move funds to the contract
     function submitTransaction(uint _ammount, address _toAddress,string memory _topic,string memory _messege) public CheckKeys returns(bool){
-        MSTrans[TotalTransactions] = MultiSigTransaction(_ammount,_toAddress,_topic,_messege,false,0,0,0);
+        MSTrans[TotalTransactions] = MultiSigTransaction(_ammount,_toAddress,_topic,_messege,false,0,0,0,true);
         TotalTransactions++;
         return true;
     }
@@ -112,5 +113,8 @@ contract MultiSigTreasury is ERC1155{
         payable(_address).transfer(MSTrans[_TransactionNumber].amount);
         return true;
     }
-    function revokeConfirmation() public CheckKeys returns(bool){}
+    //remove vote if transaction hasent been confirmed yet
+    function revokeConfirmation(uint _TransactionNumber) public CheckKeys returns(bool){
+        require(MSTrans[_TransactionNumber].status ==false && MSTrans[_TransactionNumber].exist == true ,"Transaction already confirmed");
+    }
 }
