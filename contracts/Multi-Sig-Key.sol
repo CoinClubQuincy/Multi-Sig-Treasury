@@ -114,7 +114,16 @@ contract MultiSigTreasury is ERC1155{
         return true;
     }
     //remove vote if transaction hasent been confirmed yet
-    function revokeConfirmation(uint _TransactionNumber) public CheckKeys returns(bool){
+    function revokeConfirmation(uint _TransactionNumber,string memory _castVote) public CheckKeys returns(bool){
         require(MSTrans[_TransactionNumber].status ==false && MSTrans[_TransactionNumber].exist == true ,"Transaction already confirmed");
+        require(vote[_castVote].exist == true, "you havent casted a vote");
+
+        if(vote[_castVote].status == true){
+            MSTrans[_TransactionNumber].pass--;
+            vote[_castVote].exist == false;
+        }else{
+            MSTrans[_TransactionNumber].fail--;
+            vote[_castVote].exist == false;
+        }        
     }
 }
