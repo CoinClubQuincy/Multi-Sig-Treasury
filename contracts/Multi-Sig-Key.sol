@@ -7,6 +7,7 @@ contract MultiSigTreasury is ERC1155{
     uint public TotalTransactions=0;
     uint public VotesNeededToPass;
 
+    //mappings of structs
     mapping(uint => KeyListings) keys;
     mapping(string => VoteOnTransaction) vote;
     mapping(uint => MultiSigTransaction) MSTrans;
@@ -22,6 +23,7 @@ contract MultiSigTreasury is ERC1155{
         bool status;
         bool exist;
     }
+    //transaction request
     struct MultiSigTransaction{
         uint amount;
         address toAddress;
