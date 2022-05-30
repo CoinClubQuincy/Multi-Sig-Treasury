@@ -1,6 +1,13 @@
 pragma solidity ^0.8.10;
 // SPDX-License-Identifier: MIT
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+interface MultiSigTreasury_interface{
+    function checkVote(string memory _keyNumb, string memory _transNumb) external returns(uint,bool);
+    function viewTransaction(uint _transactionNumb) external returns(uint,address,string memory,string memory,bool,uint);
+    function submitTransaction(uint _ammount, address _toAddress,string memory _topic,string memory _messege) external returns(bool);
+    function confirmTransaction(uint _TransactionNumber, bool _vote,uint _keyNumb) external returns(uint,uint);
+    function revokeConfirmation(uint _TransactionNumber,string memory _castVote) external  returns(bool);
+}
 
 contract MultiSigTreasury is ERC1155{
     uint KEYS =0;
@@ -119,7 +126,7 @@ contract MultiSigTreasury is ERC1155{
     function revokeConfirmation(uint _TransactionNumber,string memory _castVote) public CheckKeys returns(bool){
         require(MSTrans[_TransactionNumber].status ==false && MSTrans[_TransactionNumber].exist == true ,"Transaction already confirmed");
         require(vote[_castVote].exist == true, "you havent casted a vote");
-
+        //remove vote
         if(vote[_castVote].status == true){
             MSTrans[_TransactionNumber].pass--;
             vote[_castVote].exist == false;
