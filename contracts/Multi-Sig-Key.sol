@@ -44,7 +44,7 @@ contract MultiSigTreasury is ERC1155{
     }
     //Launch Contract and Keys
     constructor(uint _totalKeys, uint _VotesNeededToPass,string memory URI)ERC1155(URI){
-        require(_VotesNeededToPass <= _totalKeys);
+        require(_VotesNeededToPass <= _totalKeys, "you cant have more votes needed than keys created");
         KEYS =_totalKeys;
         VotesNeededToPass = _VotesNeededToPass;
         uint countKeys;
@@ -56,7 +56,7 @@ contract MultiSigTreasury is ERC1155{
     //modifier checks to see if user has a key before executing the function
     modifier CheckKeys{
         (bool keyStatus,uint keyNumb) = checkTokens(msg.sender);
-        require(keyStatus == true);
+        require(keyStatus == true, "You must hold a Key to access this function");
         _;
     }
     //internal function checks to see if user has key
