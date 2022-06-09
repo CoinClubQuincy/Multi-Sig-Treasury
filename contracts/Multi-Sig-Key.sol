@@ -87,9 +87,9 @@ contract MultiSigTreasury is ERC1155{
         return (vote[checkStatus].Key,vote[checkStatus].status);
     }
     //view previouse & pending transactions
-    function viewTransaction(uint _transactionNumb) public CheckKeys returns(uint,address,string memory,string memory,bool,uint){
+    function viewTransaction(uint _transactionNumb) public CheckKeys returns(uint,address,string memory,bool,uint,uint){
         require(_transactionNumb <= TotalTransactions, " _transactionNumb cant exceed the totalTransactions");
-        return (MSTrans[_transactionNumb].amount ,MSTrans[_transactionNumb].toAddress ,MSTrans[_transactionNumb].topic ,MSTrans[_transactionNumb].messege,MSTrans[_transactionNumb].status ,MSTrans[_transactionNumb].pass);
+        return (MSTrans[_transactionNumb].amount ,MSTrans[_transactionNumb].toAddress ,string.concat(MSTrans[_transactionNumb].topic ,"-",MSTrans[_transactionNumb].messege),MSTrans[_transactionNumb].status ,MSTrans[_transactionNumb].pass,MSTrans[_transactionNumb].fail);
     }
     //make a submittion to move funds to the contract
     function submitTransaction(uint _ammount, address _toAddress,string memory _topic,string memory _messege) public CheckKeys returns(bool){
@@ -134,5 +134,10 @@ contract MultiSigTreasury is ERC1155{
             MSTrans[_TransactionNumber].fail--;
             vote[_castVote].exist == false;
         }        
+    }
+    // upload funds to contract
+    event Received(address, uint);
+    receive() external payable {
+        emit Received(msg.sender, msg.value);
     }
 }
