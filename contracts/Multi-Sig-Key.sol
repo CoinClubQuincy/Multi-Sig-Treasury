@@ -80,6 +80,13 @@ contract MultiSigTreasury is ERC1155{
             return false;
         }
     }
+    //check to see if holder is holdin ther key
+    //1 key per address if an address holds multiple key they will only be able to sign one
+    function checkKey(uint _checkKey) internal returns(bool){
+        (bool keyStatus,uint keyNumb) = checkTokens(msg.sender);
+        require(keyStatus == true && keyNumb == _checkKey, "You must hold a Key to access this function");
+        return true;
+    }
     //checks the voting status of a particular vote on a transactions
     function checkVote(string memory _keyNumb, string memory _transNumb) public CheckKeys returns(uint,bool){
         string memory checkStatus;
@@ -104,7 +111,8 @@ contract MultiSigTreasury is ERC1155{
         castVote = string(abi.encodePacked(_TransactionNumber,"-",_keyNumb));
         
         require(vote[castVote].exist == false, "vote has been cast already");
-        
+        require(checkKey(_keyNumb) == true, "you must be the holder of the key");
+
         vote[castVote] = VoteOnTransaction(_keyNumb,_vote,true);
         
         if(_vote== true){
@@ -123,16 +131,18 @@ contract MultiSigTreasury is ERC1155{
         return true;
     }
     //remove vote if transaction hasent been confirmed yet
-    function revokeConfirmation(uint _TransactionNumber,string memory _castVote) public CheckKeys returns(bool){
+    function revokeConfirmation(uint _TransactionNumber,string memory _castVote, uint _keyNumb) public CheckKeys returns(bool){
+        string memory castVote = string(abi.encodePacked(_TransactionNumber,"-",_keyNumb));
         require(MSTrans[_TransactionNumber].status ==false && MSTrans[_TransactionNumber].exist == true ,"Transaction already confirmed");
         require(vote[_castVote].exist == true, "you havent casted a vote");
+        require(checkKey(_keyNumb) == true, "ypu must be the holder of the key");
         //remove vote
-        if(vote[_castVote].status == true){
+        if(vote[castVote].status == true){
             MSTrans[_TransactionNumber].pass--;
-            vote[_castVote].exist == false;
+            vote[castVote].exist == false;
         }else{
             MSTrans[_TransactionNumber].fail--;
-            vote[_castVote].exist == false;
+            vote[castVote].exist == false;
         }        
     }
     // upload funds to contract

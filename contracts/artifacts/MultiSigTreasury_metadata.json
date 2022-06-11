@@ -335,6 +335,11 @@
 						"internalType": "string",
 						"name": "_castVote",
 						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_keyNumb",
+						"type": "uint256"
 					}
 				],
 				"name": "revokeConfirmation",
@@ -670,11 +675,11 @@
 			]
 		},
 		"Documents/GitHub/Multi-Sig-Treasury/contracts/Multi-Sig-Key.sol": {
-			"keccak256": "0x012fee6655003e89e6435a0e3f1b4b0461efac6cdf63e58ce73a5bd3f7f16a35",
+			"keccak256": "0xe3bfd8e203f03fd3c0a149dbc0ce0c94714ba36eff0ee0d9c9e725d57ca3bac3",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://abeba3746544bcc9cee252806d02c8e137844700b03d0685d3bbeb111a9d511f",
-				"dweb:/ipfs/QmQ6CgZZ7s9FSWm3dSQTxKo5Ys45J29sTnyka5pyi7mH8k"
+				"bzz-raw://182cd0bfa57d1e46030dba1e0d1d3c914121bb8768485e41c115285bc8e0dd83",
+				"dweb:/ipfs/QmZifJovomEs4muYQaGvGJiChZgyBg1m9tYUtX1bsZFaDe"
 			]
 		}
 	},
