@@ -1,6 +1,7 @@
 pragma solidity ^0.8.10;
 // SPDX-License-Identifier: MIT
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 interface MultiSigTreasury_interface{
     function checkVote(string memory _keyNumb, string memory _transNumb) external returns(uint,bool);
     function viewTransaction(uint _transactionNumb) external returns(uint,address,string memory,string memory,bool,uint);
@@ -109,7 +110,7 @@ contract MultiSigTreasury is ERC1155{
         require(MSTrans[_TransactionNumber].status == false, "Contract Transaction Completed...no futher confrimation votes can be cast");
         
         string memory castVote;
-        castVote = string(abi.encodePacked(_TransactionNumber,"-",_keyNumb));
+        castVote = string(abi.encodePacked(Strings.toString(_TransactionNumber),"-",Strings.toString(_keyNumb)));
         
         require(vote[castVote].exist == false, "vote has been cast already");
         require(checkKey(_keyNumb) == true, "you must be the holder of the key");
@@ -132,18 +133,20 @@ contract MultiSigTreasury is ERC1155{
         return true;
     }
     //remove vote if transaction hasent been confirmed yet
-    function revokeConfirmation(uint _TransactionNumber, uint _keyNumb) public CheckKeys returns(bool){
-        string memory castVote = string(abi.encodePacked(_TransactionNumber,"-",_keyNumb));
+    function revokeConfirmation(uint _TransactionNumber, uint _keyNumb) public CheckKeys returns(string memory){
+        string memory castVote = string(abi.encodePacked(Strings.toString(_TransactionNumber),"-",Strings.toString(_keyNumb)));
         require(MSTrans[_TransactionNumber].status ==false && MSTrans[_TransactionNumber].exist == true ,"Transaction already confirmed");
         require(vote[castVote].exist == true, "you havent casted a vote");
-        require(checkKey(_keyNumb) == true, "ypu must be the holder of the key");
+        require(checkKey(_keyNumb) == true, "you must be the holder of the key");
         //remove vote
         if(vote[castVote].status == true){
             MSTrans[_TransactionNumber].pass--;
             vote[castVote].exist == false;
+            return "Vote Removed Pass: -1";
         }else{
             MSTrans[_TransactionNumber].fail--;
             vote[castVote].exist == false;
+            return "Vote Removed Fail: -1";
         }        
     }
     // upload funds to contract
