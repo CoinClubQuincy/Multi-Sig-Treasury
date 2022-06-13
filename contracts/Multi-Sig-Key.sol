@@ -139,12 +139,14 @@ contract MultiSigTreasury is ERC1155{
         require(vote[castVote].exist == true, "you havent casted a vote");
         require(checkKey(_keyNumb) == true, "you must be the holder of the key");
         //remove vote
-        vote[castVote].exist == false;
+        
         if(vote[castVote].status == true){
             MSTrans[_TransactionNumber].pass--;
+            vote[castVote] = VoteOnTransaction(_keyNumb,false,false);
             return "Vote Removed Pass: -1";
         }else{
             MSTrans[_TransactionNumber].fail--;
+            vote[castVote] = VoteOnTransaction(_keyNumb,false,false);
             return "Vote Removed Fail: -1";
         }        
     }
