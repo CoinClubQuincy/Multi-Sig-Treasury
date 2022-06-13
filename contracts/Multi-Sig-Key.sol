@@ -89,9 +89,9 @@ contract MultiSigTreasury is ERC1155{
         return true;
     }
     //checks the voting status of a particular vote on a transactions
-    function checkVote(string memory _keyNumb, string memory _transNumb) public CheckKeys returns(uint,bool,bool){
+    function checkVote(uint _keyNumb,uint _transNumb) public CheckKeys returns(uint,bool,bool){
         string memory checkStatus;
-        checkStatus = string(abi.encodePacked(_transNumb,"-",_keyNumb));
+        checkStatus = string(abi.encodePacked(Strings.toString(_transNumb),"-",Strings.toString(_keyNumb)));
         return (vote[checkStatus].Key,vote[checkStatus].status,vote[checkStatus].exist);
     }
     //view previouse & pending transactions
