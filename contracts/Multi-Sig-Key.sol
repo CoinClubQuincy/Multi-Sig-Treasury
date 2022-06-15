@@ -3,14 +3,14 @@ pragma solidity ^0.8.10;
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 interface MultiSigTreasury_interface{
-    function checkVote(string memory _keyNumb, string memory _transNumb) external returns(uint,bool);
-    function viewTransaction(uint _transactionNumb) external returns(uint,address,string memory,string memory,bool,uint);
-    function submitTransaction(uint _ammount, address _toAddress,string memory _topic,string memory _messege) external returns(bool);
-    function confirmTransaction(uint _TransactionNumber, bool _vote,uint _keyNumb) external returns(uint,uint);
-    function revokeConfirmation(uint _TransactionNumber,string memory _castVote) external  returns(bool);
+    function checkVote(uint _keyNumb,uint _transNumb) external returns(uint,bool,bool);
+    function viewTransaction(uint _transactionNumb) external returns(uint,address,string memory,bool,uint,uint);
+    function submitProposal(uint _ammount, address _toAddress,string memory _topic,string memory _messege) external returns(bool);
+    function confirmTransaction(uint _TransactionNumber, bool _vote,uint _keyNumb) external returns(uint,uint,string memory);
+    function revokeConfirmation(uint _TransactionNumber, uint _keyNumb) external returns(string memory);
 }
 
-contract MultiSigTreasury is  MultiSigTreasury_interface,ERC1155{
+contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
     uint public totalKeys =0;
     uint public TotalTransactions=0;
     uint public VotesNeededToPass;
