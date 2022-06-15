@@ -10,8 +10,8 @@ interface MultiSigTreasury_interface{
     function revokeConfirmation(uint _TransactionNumber,string memory _castVote) external  returns(bool);
 }
 
-contract MultiSigTreasury is ERC1155{
-    uint totalKeys =0;
+contract MultiSigTreasury is  MultiSigTreasury_interface,ERC1155{
+    uint public totalKeys =0;
     uint public TotalTransactions=0;
     uint public VotesNeededToPass;
     //Events for Proposals and executions
@@ -82,8 +82,8 @@ contract MultiSigTreasury is ERC1155{
             return false;
         }
     }
-    //check to see if holder is holdin ther key
-    //1 key per address if an address holds multiple key they will only be able to sign one
+    //check to see if holder is holding their key
+    //1 key per address if an address holds multiple keys they will only be able to sign one
     function checkKey(uint _checkKey) internal returns(bool){
         (bool keyStatus,uint keyNumb) = checkTokens(msg.sender);
         require(keyStatus == true && keyNumb == _checkKey, "You must hold a Key to access this function");
