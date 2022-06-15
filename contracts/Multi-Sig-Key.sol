@@ -15,6 +15,9 @@ contract MultiSigTreasury is ERC1155{
     uint public TotalTransactions=0;
     uint public VotesNeededToPass;
 
+    event Proposal(uint _transactionNumb, string _memo);
+    event Execute(uint _transactionNumb, string _memo);
+
     //mappings of structs
     mapping(uint => KeyListings) keys;
     mapping(string => VoteOnTransaction) vote;
@@ -103,6 +106,7 @@ contract MultiSigTreasury is ERC1155{
     function submitTransaction(uint _ammount, address _toAddress,string memory _topic,string memory _messege) public CheckKeys returns(bool){
         require(address(this).balance >= _ammount, "Not enough funds in contract");
         MSTrans[TotalTransactions] = MultiSigTransaction(_ammount,_toAddress,_topic,_messege,false,0,0,0,true);
+        emit Proposal(TotalTransactions,"Transactionan Proposal Made");
         TotalTransactions++;
         return true;
     }
@@ -132,6 +136,7 @@ contract MultiSigTreasury is ERC1155{
         MSTrans[_TransactionNumber].status = true;
 
         require(address(this).balance >= MSTrans[_TransactionNumber].amount, "Not enough funds in contract transaction canceled");
+        emit Execute(_TransactionNumber,"Transaction successful!");
         payable(_address).transfer(MSTrans[_TransactionNumber].amount);
         return true;
     }
