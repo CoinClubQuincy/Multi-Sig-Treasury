@@ -14,15 +14,13 @@ contract MultiSigTreasury is ERC1155{
     uint KEYS =0;
     uint public TotalTransactions=0;
     uint public VotesNeededToPass;
-
+    //Events for Proposals and executions
     event Proposal(uint _transactionNumb, string _memo);
     event Execute(uint _transactionNumb, string _memo);
-
     //mappings of structs
     mapping(uint => KeyListings) keys;
     mapping(string => VoteOnTransaction) vote;
     mapping(uint => MultiSigTransaction) MSTrans;
-    
     //list Keys
     struct KeyListings{
         uint count;
@@ -112,16 +110,13 @@ contract MultiSigTreasury is ERC1155{
     }
     //key holders can cast votes as a key for a transaction
     function confirmTransaction(uint _TransactionNumber, bool _vote,uint _keyNumb) public CheckKeys returns(uint,uint,string memory){
-        require(MSTrans[_TransactionNumber].status == false, "Contract Transaction Completed...no futher confrimation votes can be cast");
-        
         string memory castVote;
         castVote = string(abi.encodePacked(Strings.toString(_TransactionNumber),"-",Strings.toString(_keyNumb)));
-        
+        require(MSTrans[_TransactionNumber].status == false, "Contract Transaction Completed...no futher confrimation votes can be cast");
         require(vote[castVote].exist == false, "vote has been cast already");
         require(checkKey(_keyNumb) == true, "you must be the holder of the key");
 
         vote[castVote] = VoteOnTransaction(_keyNumb,_vote,true);
-        
         if(_vote== true){
             MSTrans[_TransactionNumber].pass++;
         }else{
@@ -147,7 +142,6 @@ contract MultiSigTreasury is ERC1155{
         require(vote[castVote].exist == true, "you havent casted a vote");
         require(checkKey(_keyNumb) == true, "you must be the holder of the key");
         //remove vote
-        
         if(vote[castVote].status == true){
             MSTrans[_TransactionNumber].pass--;
             vote[castVote] = VoteOnTransaction(_keyNumb,false,false);
