@@ -11,7 +11,7 @@ interface MultiSigTreasury_interface{
 }
 
 contract MultiSigTreasury is ERC1155{
-    uint KEYS =0;
+    uint totalKeys =0;
     uint public TotalTransactions=0;
     uint public VotesNeededToPass;
     //Events for Proposals and executions
@@ -47,7 +47,7 @@ contract MultiSigTreasury is ERC1155{
     //Launch Contract and Keys
     constructor(uint _totalKeys, uint _VotesNeededToPass,string memory URI)ERC1155(URI){
         require(_VotesNeededToPass <= _totalKeys, "you cant have more votes needed than keys created");
-        KEYS =_totalKeys;
+        totalKeys =_totalKeys;
         VotesNeededToPass = _VotesNeededToPass;
         uint countKeys;
         for(countKeys=0; countKeys < _totalKeys; countKeys++){
@@ -64,10 +64,10 @@ contract MultiSigTreasury is ERC1155{
     //internal function checks to see if user has key
     function checkTokens(address _user) internal returns(bool,uint){
         uint i;
-        for(i=0; i <= KEYS; i++){
+        for(i=0; i <= totalKeys; i++){
             if(balanceOf(_user,i) > 0){
                 return (true,i);
-            } else if(i == KEYS){
+            } else if(i == totalKeys){
                 return (false,i);
             }
         }       
