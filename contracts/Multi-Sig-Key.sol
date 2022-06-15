@@ -101,6 +101,7 @@ contract MultiSigTreasury is ERC1155{
     }
     //make a submittion to move funds to the contract
     function submitTransaction(uint _ammount, address _toAddress,string memory _topic,string memory _messege) public CheckKeys returns(bool){
+        require(address(this).balance >= _ammount, "Not enough funds in contract");
         MSTrans[TotalTransactions] = MultiSigTransaction(_ammount,_toAddress,_topic,_messege,false,0,0,0,true);
         TotalTransactions++;
         return true;
@@ -129,6 +130,8 @@ contract MultiSigTreasury is ERC1155{
     function executeTransaction(uint _TransactionNumber) internal returns(bool){
         address _address = MSTrans[_TransactionNumber].toAddress;
         MSTrans[_TransactionNumber].status = true;
+
+        require(address(this).balance >= MSTrans[_TransactionNumber].amount, "Not enough funds in contract transaction canceled");
         payable(_address).transfer(MSTrans[_TransactionNumber].amount);
         return true;
     }
