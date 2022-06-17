@@ -80,6 +80,7 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
             executeTransaction(_TransactionNumber);
             return true;
         } else if(MSTrans[_TransactionNumber].fail >= VotesNeededToPass) {
+            MSTrans[_TransactionNumber].status = true;
             emit BlankExecute(_TransactionNumber,"Vote Failed!");
             return true;
         }else {
