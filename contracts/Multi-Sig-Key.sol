@@ -2,6 +2,8 @@ pragma solidity ^0.8.10;
 // SPDX-License-Identifier: MIT
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
 interface MultiSigTreasury_interface{
     function checkVote(uint _keyNumb,uint _transNumb) external returns(uint,bool,bool);
     function viewTransaction(uint _transactionNumb) external returns(uint,address,string memory,bool,uint,uint);
@@ -14,6 +16,7 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
     uint public totalKeys =0;
     uint public TotalTransactions=0;
     uint public VotesNeededToPass;
+    uint public XRCcontracts=0;
     //Events for Proposals and executions
     event Proposal(uint _transactionNumb, string _memo);
     event Execute(uint _transactionNumb, string _memo);
@@ -22,6 +25,7 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
     mapping(uint => KeyListings) keys;
     mapping(string => VoteOnTransaction) vote;
     mapping(uint => MultiSigTransaction) MSTrans;
+    mapping(uint => XRCTokens) XRC;
     //list Keys
     struct KeyListings{
         uint count;
@@ -31,6 +35,12 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
     struct VoteOnTransaction{
         uint Key;
         bool status;
+        bool exist;
+    }
+    //list of XRCTokens
+    struct XRCTokens{
+        string name;
+        address XRCcontract;
         bool exist;
     }
     //transaction request
@@ -44,6 +54,7 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
         uint fail;
         uint voteCount;
         bool exist;
+
     }
     //Launch Contract and Keys
     constructor(uint _totalKeys, uint _VotesNeededToPass,string memory URI)ERC1155(URI){
@@ -61,6 +72,18 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
         (bool keyStatus,uint keyNumb) = checkTokens(msg.sender);
         require(keyStatus == true, "You must hold a Key to access this function");
         _;
+    }
+    //view all loged XRC token
+    function viewAllXRC() public CheckKeys returns(XRCTokens[] memory){
+        XRCTokens[] memory All_Tokens = new XRCTokens[](XRCcontracts);
+        for(uint i = 0; i < XRCcontracts; i++){
+            XRCTokens storage NewAll_Tokens = XRC[i];
+            All_Tokens[i] = NewAll_Tokens;        
+        }
+    }
+    //view XRC balance
+    function viewXRCbalance(address _contract) public CheckKeys returns(bool){
+        IERC20(_contract).balanceOf(address(this));
     }
     //internal function checks to see if user has key
     function checkTokens(address _user) internal returns(bool,uint){
@@ -131,6 +154,7 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
         return (MSTrans[_TransactionNumber].pass,MSTrans[_TransactionNumber].fail,castVote);
     }
     //Executes payment ticket after parties have voted on it
+    //0x0000000000000000000000000000000000000000 ass address will produce a blank vote
     function executeTransaction(uint _TransactionNumber) internal returns(bool){
         address _address = MSTrans[_TransactionNumber].toAddress;
         MSTrans[_TransactionNumber].status = true;
