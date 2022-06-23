@@ -4,10 +4,16 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
+contract TSTToken is ERC20 {
+    constructor(uint256 initialSupply) public ERC20("TST", "TST") {
+        _mint(msg.sender, initialSupply);
+    }
+}
+
 interface MultiSigTreasury_interface{
     function checkVote(uint _keyNumb,uint _transNumb) external returns(uint,bool,bool);
     function viewTransaction(uint _transactionNumb) external returns(uint,address,string memory,bool,uint,uint);
-    function submitProposal(uint _ammount, address _toAddress,string memory _topic,string memory _messege) external returns(bool);
+    function submitProposal(uint _ammount, address [] memory _address,string memory _topic,string memory _messege) external returns(bool);
     function confirmTransaction(uint _TransactionNumber, bool _vote,uint _keyNumb) external returns(uint,uint,string memory);
     function revokeConfirmation(uint _TransactionNumber, uint _keyNumb) external returns(string memory);
 }
@@ -39,9 +45,7 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
     }
     //list of XRCTokens
     struct XRCTokens{
-        string name;
         address XRCcontract;
-        bool exist;
     }
     //transaction request
     struct MultiSigTransaction{
@@ -54,7 +58,7 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
         uint fail;
         uint voteCount;
         bool exist;
-
+        address XRC;
     }
     //Launch Contract and Keys
     constructor(uint _totalKeys, uint _VotesNeededToPass,string memory URI)ERC1155(URI){
@@ -104,7 +108,7 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
             return true;
         } else if(MSTrans[_TransactionNumber].fail >= VotesNeededToPass) {
             MSTrans[_TransactionNumber].status = true;
-            emit BlankExecute(_TransactionNumber,"Vote Failed!");
+            emit Execute(_TransactionNumber,"Vote Failed!");
             return true;
         }else {
             return false;
@@ -129,11 +133,26 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
         return (MSTrans[_transactionNumb].amount ,MSTrans[_transactionNumb].toAddress ,string.concat(MSTrans[_transactionNumb].topic ,"-",MSTrans[_transactionNumb].messege),MSTrans[_transactionNumb].status ,MSTrans[_transactionNumb].pass,MSTrans[_transactionNumb].fail);
     }
     //make a submittion to move funds to the contract
-    function submitProposal(uint _ammount, address _toAddress,string memory _topic,string memory _messege) public CheckKeys returns(bool){
-        require(address(this).balance >= _ammount, "Not enough funds in contract");
-        MSTrans[TotalTransactions] = MultiSigTransaction(_ammount,_toAddress,_topic,_messege,false,0,0,0,true);
-        emit Proposal(TotalTransactions,"Transactionan Proposal Made");
-        TotalTransactions++;
+    function submitProposal(uint _ammount, address [] memory _address,string memory _topic,string memory _messege) public CheckKeys returns(bool){
+        if(_address.length == 1){
+            require(address(this).balance >= _ammount, "Not enough funds in contract");
+        } else if(_address.length == 2){
+            require(ERC20(_address[1]).balanceOf(address(this)) >= _ammount, "Not enough XRC funds in contract");
+        }
+        
+        if(_address.length == 1){
+            MSTrans[TotalTransactions] = MultiSigTransaction(_ammount,_address[0],_topic,_messege,false,0,0,0,true,0x0000000000000000000000000000000000000000);
+            emit Proposal(TotalTransactions,"Transactionan Proposal Made");
+            TotalTransactions++;
+            return true;
+        } else if(_address.length == 2){
+            MSTrans[TotalTransactions] = MultiSigTransaction(_ammount,_address[0],_topic,_messege,false,0,0,0,true,_address[1]);
+            emit Proposal(TotalTransactions,"XRC Transactionan Proposal Made");
+            TotalTransactions++;
+            return true;
+        } else {
+            return false;
+        }
         return true;
     }
     //key holders can cast votes as a key for a transaction
@@ -151,21 +170,27 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
             MSTrans[_TransactionNumber].fail++;
         }
         checkTotal(_TransactionNumber);
+
         return (MSTrans[_TransactionNumber].pass,MSTrans[_TransactionNumber].fail,castVote);
     }
     //Executes payment ticket after parties have voted on it
-    //0x0000000000000000000000000000000000000000 ass address will produce a blank vote
+    //0x0000000000000000000000000000000000000000 as address will produce a blank vote
+    //0x0000000000000000000000000000000000000000 as XRC will submit XDC transaction and an adress contract will send the addres token
     function executeTransaction(uint _TransactionNumber) internal returns(bool){
         address _address = MSTrans[_TransactionNumber].toAddress;
         MSTrans[_TransactionNumber].status = true;
 
-        require(address(this).balance >= MSTrans[_TransactionNumber].amount, "Not enough funds in contract transaction canceled");
-        emit Execute(_TransactionNumber,"Transaction successful!");
-        if(_address == 0x0000000000000000000000000000000000000000){
-            emit BlankExecute(_TransactionNumber,"Vote Passed!");
+        if(MSTrans[_TransactionNumber].XRC == 0x0000000000000000000000000000000000000000){
+            if(_address == 0x0000000000000000000000000000000000000000){
+                emit BlankExecute(_TransactionNumber,"Vote Passed!");
+            } else{
+                 require(address(this).balance >= MSTrans[_TransactionNumber].amount, "Not enough funds in contract transaction canceled");
+                payable(_address).transfer(MSTrans[_TransactionNumber].amount);
+            }
         } else{
-            payable(_address).transfer(MSTrans[_TransactionNumber].amount);
+            ERC20(MSTrans[_TransactionNumber].XRC).transfer(MSTrans[_TransactionNumber].toAddress, MSTrans[_TransactionNumber].amount);
         }
+        emit Execute(_TransactionNumber,"Transaction successful!");
         return true;
     }
     //remove vote if transaction hasent been confirmed yet
