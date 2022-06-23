@@ -190,4 +190,14 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
     receive() external payable {
         emit Received(msg.sender, msg.value);
     }
+    //ERC1155Received fuctions
+    function onERC1155Received(address, address, uint256, uint256, bytes memory) public virtual returns (bytes4) {
+        return this.onERC1155Received.selector;
+    }
+    function onERC1155BatchReceived(address, address, uint256[] memory, uint256[] memory, bytes memory) public virtual returns (bytes4) {
+        return this.onERC1155BatchReceived.selector;
+    }
+    function onERC721Received(address, address, uint256, bytes memory) public virtual returns (bytes4) {
+        return this.onERC721Received.selector;
+    }
 }
