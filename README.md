@@ -26,4 +26,5 @@
 - 2: (uint) Token number
 
 
-![multiSigTreasury](https://user-images.githubusercontent.com/16103963/175443181-b63d9eb7-9be3-4445-80df-8607f3b71541.png)
+
+![multiSigTreasury (1)](https://user-images.githubusercontent.com/16103963/175453972-a67d397f-2dcf-4099-8d43-dafad21ab17b.png)
