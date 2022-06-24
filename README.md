@@ -14,7 +14,7 @@ Note: 0x0000000000000000000000000000000000000000 is used as a 0 place hoder
 
 **XDC Transactions:**
 - 0:(address) toAddress 
-- 1:(address)0x0000000000000000000000000000000000000000 (Required!)
+- 1:(address)
 - 2: N/A
 
 **XRC20  Transactions:**
