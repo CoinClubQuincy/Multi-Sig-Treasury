@@ -1,14 +1,13 @@
-# # Multi-Signature Treasury 
-***Parameters***
-- Amount 
-- [0: toAddress, 1: XRC_Type, 2: NFT_id] **(token based parameters)**
-- Topic 
-- Message
+# ***submitProposal()*** *Parameters*
+- uint: Amount 
+- Array: [0: toAddress, 1: XRC_Type, 2: NFT_id] **(token based parameters)**
+- String: Topic 
+- String: Message
 
 # #Token Based Parameters
 **Governance Vote**
-- 0: 0x0000000000000000000000000000000000000000
-- 1: 0x0000000000000000000000000000000000000000
+- 0: (address) 0x0000000000000000000000000000000000000000
+- 1: (address) 0x0000000000000000000000000000000000000000
 - 2: N/A
 
 **XDC Transactions:**
