@@ -1,4 +1,9 @@
+
+
 # ***submitProposal()*** *Parameters*
+
+    function submitProposal(uint  _ammount, address [] memory  _address,string  memory  _topic,string  memory  _messege) public CheckKeys returns(bool)
+
 - uint: Amount 
 - Array: [0: toAddress, 1: XRC_Type, 2: NFT_id] **(token based parameters)**
 - String: Topic 
@@ -26,6 +31,7 @@ Note: 0x0000000000000000000000000000000000000000 is used as a 0 place hoder
  - 0: (address) toAddress 
 - 1: (address) XRC contract address
 - 2: (uint) Token number 
+ 
 
 
 ![multiSigTreasury (1)](https://user-images.githubusercontent.com/16103963/175453972-a67d397f-2dcf-4099-8d43-dafad21ab17b.png)
