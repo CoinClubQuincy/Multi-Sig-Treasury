@@ -5,26 +5,27 @@
 - String: Message
 
 # #Token Based Parameters
-**Governance Vote**
+Note: 0x0000000000000000000000000000000000000000 is used as a 0 place hoder
+
+**Governance Vote:**
 - 0: (address) 0x0000000000000000000000000000000000000000 (Required!)
 - 1: (address) 0x0000000000000000000000000000000000000000 (Required!)
 - 2: N/A
 
 **XDC Transactions:**
-- 0:(address) toAddress (User Input)
+- 0:(address) toAddress 
 - 1:(address)0x0000000000000000000000000000000000000000 (Required!)
 - 2: N/A
 
 **XRC20  Transactions:**
-- 0: (address) toAddress (User Input)
-- 1: (address) XRC contract address (User Input)
+- 0: (address) toAddress 
+- 1: (address) XRC contract address 
 - 2:N/A
 
 **XRC721&1155 Transactions:**
- - 0: (address) toAddress (User Input)
-- 1: (address) XRC contract address (User Input)
-- 2: (uint) Token number (User Input)
-
+ - 0: (address) toAddress 
+- 1: (address) XRC contract address
+- 2: (uint) Token number 
 
 
 ![multiSigTreasury (1)](https://user-images.githubusercontent.com/16103963/175453972-a67d397f-2dcf-4099-8d43-dafad21ab17b.png)
