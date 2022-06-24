@@ -6,24 +6,24 @@
 
 # #Token Based Parameters
 **Governance Vote**
-- 0: (address) 0x0000000000000000000000000000000000000000
-- 1: (address) 0x0000000000000000000000000000000000000000
+- 0: (address) 0x0000000000000000000000000000000000000000 (Required!)
+- 1: (address) 0x0000000000000000000000000000000000000000 (Required!)
 - 2: N/A
 
 **XDC Transactions:**
-- 0:(address) toAddress
-- 1:(address)0x0000000000000000000000000000000000000000 
+- 0:(address) toAddress (User Input)
+- 1:(address)0x0000000000000000000000000000000000000000 (Required!)
 - 2: N/A
 
 **XRC20  Transactions:**
-- 0: (address) toAddress
-- 1: (address) XRC contract address
+- 0: (address) toAddress (User Input)
+- 1: (address) XRC contract address (User Input)
 - 2:N/A
 
 **XRC721&1155 Transactions:**
- - 0: (address) toAddress
-- 1: (address) XRC contract address
-- 2: (uint) Token number
+ - 0: (address) toAddress (User Input)
+- 1: (address) XRC contract address (User Input)
+- 2: (uint) Token number (User Input)
 
 
 
