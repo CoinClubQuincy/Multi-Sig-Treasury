@@ -3,8 +3,8 @@ pragma solidity ^0.8.10;
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-
-contract TSTToken is ERC20 {
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+contract Token is ERC20 {
     constructor(uint256 initialSupply) public ERC20("TST", "TST") {
         _mint(msg.sender, initialSupply);
     }
