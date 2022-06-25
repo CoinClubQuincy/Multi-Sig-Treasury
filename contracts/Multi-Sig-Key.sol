@@ -59,6 +59,7 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
         uint voteCount;
         bool exist;
         address XRC;
+        string call;
     }
     //Launch Contract and Keys
     constructor(uint _totalKeys, uint _VotesNeededToPass,string memory URI)ERC1155(URI){
@@ -76,18 +77,6 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
         (bool keyStatus,uint keyNumb) = checkTokens(msg.sender);
         require(keyStatus == true, "You must hold a Key to access this function");
         _;
-    }
-    //view all loged XRC token
-    function viewAllXRC() public CheckKeys returns(XRCTokens[] memory){
-        XRCTokens[] memory All_Tokens = new XRCTokens[](XRCcontracts);
-        for(uint i = 0; i < XRCcontracts; i++){
-            XRCTokens storage NewAll_Tokens = XRC[i];
-            All_Tokens[i] = NewAll_Tokens;        
-        }
-    }
-    //view XRC balance
-    function viewXRCbalance(address _contract) public CheckKeys returns(bool){
-        IERC20(_contract).balanceOf(address(this));
     }
     //internal function checks to see if user has key
     function checkTokens(address _user) internal returns(bool,uint){
@@ -141,15 +130,19 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
         }
         
         if(_address.length == 1){
-            MSTrans[TotalTransactions] = MultiSigTransaction(_ammount,_address[0],_topic,_messege,false,0,0,0,true,0x0000000000000000000000000000000000000000);
+            MSTrans[TotalTransactions] = MultiSigTransaction(_ammount,_address[0],_topic,_messege,false,0,0,0,true,0x0000000000000000000000000000000000000000,"");
             emit Proposal(TotalTransactions,"Transactionan Proposal Made");
             TotalTransactions++;
             return true;
         } else if(_address.length == 2){
-            MSTrans[TotalTransactions] = MultiSigTransaction(_ammount,_address[0],_topic,_messege,false,0,0,0,true,_address[1]);
+            MSTrans[TotalTransactions] = MultiSigTransaction(_ammount,_address[0],_topic,_messege,false,0,0,0,true,_address[1],"");
             emit Proposal(TotalTransactions,"XRC Transactionan Proposal Made");
             TotalTransactions++;
             return true;
+        }else if(_address.length == 3){
+            MSTrans[TotalTransactions] = MultiSigTransaction(_ammount,_address[0],_topic,_messege,false,0,0,0,true,_address[1],"");
+            emit Proposal(TotalTransactions,"XRC NFT Transactionan Proposal Made");
+            TotalTransactions++;           
         } else {
             return false;
         }
