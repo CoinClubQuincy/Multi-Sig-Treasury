@@ -12,7 +12,7 @@ contract Token is ERC20 {
 
 interface MultiSigTreasury_interface{
     function checkVote(uint _keyNumb,uint _transNumb) external returns(uint,bool,bool);
-    function submitProposal(uint _ammount, address [] memory _address,string memory _topic,string memory _messege) external returns(bool);
+        function submitProposal(uint [] memory _amount, address [] memory _address,string memory _topic,string memory _messege) external returns(bool);
     function confirmTransaction(uint _TransactionNumber, bool _vote,uint _keyNumb) external returns(uint,uint,string memory);
     function revokeConfirmation(uint _TransactionNumber, uint _keyNumb) external returns(string memory);
 }
@@ -58,6 +58,7 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
         uint voteCount;
         bool exist;
         address XRC;
+        int tokenNumb;
         string call;
     }
     //Launch Contract and Keys
@@ -126,25 +127,25 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
     }  
 
     //make a submittion to move funds to the contract
-    function submitProposal(uint _ammount, address [] memory _address,string memory _topic,string memory _messege) public CheckKeys returns(bool){
+    function submitProposal(uint [] memory _amount, address [] memory _address,string memory _topic,string memory _messege) public CheckKeys returns(bool){
         if(_address.length == 1){
-            require(address(this).balance >= _ammount, "Not enough funds in contract");
+            require(address(this).balance >= _amount[0], "Not enough funds in contract");
         } else if(_address.length == 2){
-            require(ERC20(_address[1]).balanceOf(address(this)) >= _ammount, "Not enough XRC funds in contract");
+            require(ERC20(_address[1]).balanceOf(address(this)) >= _amount[0], "Not enough XRC funds in contract");
         }
         
         if(_address.length == 1){
-            MSTrans[TotalTransactions] = MultiSigTransaction(_ammount,_address[0],_topic,_messege,false,0,0,0,true,0x0000000000000000000000000000000000000000,"");
+            MSTrans[TotalTransactions] = MultiSigTransaction(_amount[0],_address[0],_topic,_messege,false,0,0,0,true,0x0000000000000000000000000000000000000000,-1,"");
             emit Proposal(TotalTransactions,"Transactionan Proposal Made");
             TotalTransactions++;
             return true;
         } else if(_address.length == 2){
-            MSTrans[TotalTransactions] = MultiSigTransaction(_ammount,_address[0],_topic,_messege,false,0,0,0,true,_address[1],"");
+            MSTrans[TotalTransactions] = MultiSigTransaction(_amount[0],_address[0],_topic,_messege,false,0,0,0,true,_address[1],-1,"");
             emit Proposal(TotalTransactions,"XRC Transactionan Proposal Made");
             TotalTransactions++;
             return true;
         }else if(_address.length == 3){
-            MSTrans[TotalTransactions] = MultiSigTransaction(_ammount,_address[0],_topic,_messege,false,0,0,0,true,_address[1],"");
+            MSTrans[TotalTransactions] = MultiSigTransaction(_amount[0],_address[0],_topic,_messege,false,0,0,0,true,_address[1],_amount[1],"");
             emit Proposal(TotalTransactions,"XRC NFT Transactionan Proposal Made");
             TotalTransactions++;           
         } else {
@@ -177,19 +178,23 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
         address _address = MSTrans[_TransactionNumber].toAddress;
         MSTrans[_TransactionNumber].status = true;
 
-        if(MSTrans[_TransactionNumber].XRC == 0x0000000000000000000000000000000000000000){
+        if(MSTrans[_TransactionNumber].XRC == 0x0000000000000000000000000000000000000000 ){
             if(_address == 0x0000000000000000000000000000000000000000){
                 emit BlankExecute(_TransactionNumber,"Vote Passed!");
             } else{
-                 require(address(this).balance >= MSTrans[_TransactionNumber].amount, "Not enough funds in contract transaction canceled");
+                require(address(this).balance >= MSTrans[_TransactionNumber].amount, "Not enough funds in contract transaction canceled");
                 payable(_address).transfer(MSTrans[_TransactionNumber].amount);
             }
-        } else{
+        } else if (MSTrans[_TransactionNumber].tokenNumb != -1 && MSTrans[_TransactionNumber].XRC != 0x0000000000000000000000000000000000000000){
             ERC20(MSTrans[_TransactionNumber].XRC).transfer(MSTrans[_TransactionNumber].toAddress, MSTrans[_TransactionNumber].amount);
+        } else if(MSTrans[_TransactionNumber].tokenNumb == -1){
+            XRC1155_XRC721Send();
         }
         emit Execute(_TransactionNumber,"Transaction successful!");
         return true;
     }
+    //check to see if contract is XRC1155 or XRC721 and send token
+    function XRC1155_XRC721Send() internal returns(bool){}
     //remove vote if transaction hasent been confirmed yet
     function revokeConfirmation(uint _TransactionNumber, uint _keyNumb) public CheckKeys returns(string memory){
         string memory castVote = string(abi.encodePacked(Strings.toString(_TransactionNumber),"-",Strings.toString(_keyNumb)));
