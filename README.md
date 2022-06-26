@@ -1,15 +1,23 @@
 
 
+
 # ***submitProposal()*** *Parameters*
 
     function submitProposal(uint  _ammount, address [] memory  _address,string  memory  _topic,string  memory  _messege) public CheckKeys returns(bool)
 
-- uint: Amount 
-- Array: [0: toAddress, 1: XRC_Type, 2: NFT_id] **(token based parameters)**
+- uint: [Amount,tokenID] 
+- address: [0: toAddress, 1: XRC_Type, 2: NFT_id] **(token based parameters)**
 - String: Topic 
 - String: Message
 
-# #Token Based Parameters
+# #int [] Based Parameters
+**All other transactions**
+- [amount]
+
+**XRC721&1155 Transactions:**
+- [1,tokenNumber]
+
+# #address [] Based Parameters
 Note: 0x0000000000000000000000000000000000000000 is used as a 0 place hoder
 
 **Governance Vote:**
@@ -35,3 +43,4 @@ Note: 0x0000000000000000000000000000000000000000 is used as a 0 place hoder
 
 
 ![multiSigTreasury (1)](https://user-images.githubusercontent.com/16103963/175453972-a67d397f-2dcf-4099-8d43-dafad21ab17b.png)
+
