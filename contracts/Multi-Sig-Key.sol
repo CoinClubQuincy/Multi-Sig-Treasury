@@ -12,7 +12,6 @@ contract Token is ERC20 {
 
 interface MultiSigTreasury_interface{
     function checkVote(uint _keyNumb,uint _transNumb) external returns(uint,bool,bool);
-    function viewTransaction(uint _transactionNumb) external returns(uint,address,string memory,bool,uint,uint);
     function submitProposal(uint _ammount, address [] memory _address,string memory _topic,string memory _messege) external returns(bool);
     function confirmTransaction(uint _TransactionNumber, bool _vote,uint _keyNumb) external returns(uint,uint,string memory);
     function revokeConfirmation(uint _TransactionNumber, uint _keyNumb) external returns(string memory);
@@ -117,10 +116,15 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
         return (vote[checkStatus].Key,vote[checkStatus].status,vote[checkStatus].exist);
     }
     //view previouse & pending transactions
-    function viewTransaction(uint _transactionNumb) public CheckKeys returns(uint,address,string memory,bool,uint,uint){
-        require(_transactionNumb <= TotalTransactions, " _transactionNumb cant exceed the totalTransactions");
-        return (MSTrans[_transactionNumb].amount ,MSTrans[_transactionNumb].toAddress ,string.concat(MSTrans[_transactionNumb].topic ,"-",MSTrans[_transactionNumb].messege),MSTrans[_transactionNumb].status ,MSTrans[_transactionNumb].pass,MSTrans[_transactionNumb].fail);
-    }
+    function ViewTransactions() public CheckKeys returns(MultiSigTransaction[] memory){
+        MultiSigTransaction[] memory All_Transactions = new MultiSigTransaction[](TotalTransactions);
+        for(uint i = 0; i < TotalTransactions; i++){
+            MultiSigTransaction storage NewAll_Transactions = MSTrans[i];
+            All_Transactions[i] = NewAll_Transactions;
+        }
+        return (All_Transactions);
+    }  
+
     //make a submittion to move funds to the contract
     function submitProposal(uint _ammount, address [] memory _address,string memory _topic,string memory _messege) public CheckKeys returns(bool){
         if(_address.length == 1){
