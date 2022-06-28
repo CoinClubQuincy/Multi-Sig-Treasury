@@ -58,7 +58,7 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
         uint voteCount;
         bool exist;
         address XRC;
-        int tokenNumb;
+        uint tokenNumb;
         string call;
     }
     //Launch Contract and Keys
@@ -128,6 +128,7 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
 
     //make a submittion to move funds to the contract
     function submitProposal(uint [] memory _amount, address [] memory _address,string memory _topic,string memory _messege) public CheckKeys returns(bool){
+        uint NFTtoken = _amount[1];
         if(_address.length == 1){
             require(address(this).balance >= _amount[0], "Not enough funds in contract");
         } else if(_address.length == 2){
@@ -135,17 +136,17 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
         }
         
         if(_address.length == 1){
-            MSTrans[TotalTransactions] = MultiSigTransaction(_amount[0],_address[0],_topic,_messege,false,0,0,0,true,0x0000000000000000000000000000000000000000,-1,"");
+            MSTrans[TotalTransactions] = MultiSigTransaction(_amount[0],_address[0],_topic,_messege,false,0,0,0,true,0x0000000000000000000000000000000000000000,0,"");
             emit Proposal(TotalTransactions,"Transactionan Proposal Made");
             TotalTransactions++;
             return true;
         } else if(_address.length == 2){
-            MSTrans[TotalTransactions] = MultiSigTransaction(_amount[0],_address[0],_topic,_messege,false,0,0,0,true,_address[1],-1,"");
+            MSTrans[TotalTransactions] = MultiSigTransaction(_amount[0],_address[0],_topic,_messege,false,0,0,0,true,_address[1],0,"");
             emit Proposal(TotalTransactions,"XRC Transactionan Proposal Made");
             TotalTransactions++;
             return true;
         }else if(_address.length == 3){
-            MSTrans[TotalTransactions] = MultiSigTransaction(_amount[0],_address[0],_topic,_messege,false,0,0,0,true,_address[1],_amount[1],"");
+            MSTrans[TotalTransactions] = MultiSigTransaction(_amount[0],_address[0],_topic,_messege,false,0,0,0,true,_address[1],NFTtoken,"");
             emit Proposal(TotalTransactions,"XRC NFT Transactionan Proposal Made");
             TotalTransactions++;           
         } else {
@@ -185,16 +186,22 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
                 require(address(this).balance >= MSTrans[_TransactionNumber].amount, "Not enough funds in contract transaction canceled");
                 payable(_address).transfer(MSTrans[_TransactionNumber].amount);
             }
-        } else if (MSTrans[_TransactionNumber].tokenNumb != -1 && MSTrans[_TransactionNumber].XRC != 0x0000000000000000000000000000000000000000){
+        } else if (MSTrans[_TransactionNumber].tokenNumb != 0 && MSTrans[_TransactionNumber].XRC != 0x0000000000000000000000000000000000000000){
             ERC20(MSTrans[_TransactionNumber].XRC).transfer(MSTrans[_TransactionNumber].toAddress, MSTrans[_TransactionNumber].amount);
-        } else if(MSTrans[_TransactionNumber].tokenNumb == -1){
-            XRC1155_XRC721Send();
+        } else if(MSTrans[_TransactionNumber].tokenNumb != 0){
+            XRC1155_XRC721Send(MSTrans[_TransactionNumber].XRC,MSTrans[_TransactionNumber].tokenNumb,MSTrans[_TransactionNumber].amount);
         }
         emit Execute(_TransactionNumber,"Transaction successful!");
         return true;
     }
     //check to see if contract is XRC1155 or XRC721 and send token
-    function XRC1155_XRC721Send() internal returns(bool){}
+    function XRC1155_XRC721Send(address _contractAddress, uint _tokenNumb,uint _amount) internal returns(bool){
+        if(IERC721(_contractAddress).supportsInterface(0x80ac58cd) == true){
+            ERC721(_contractAddress).safeTransferFrom(address(this), _contractAddress, _tokenNumb,"");
+        }else{
+            ERC1155(_contractAddress).safeTransferFrom(address(this), _contractAddress, _tokenNumb,_amount,"");
+        }
+    }
     //remove vote if transaction hasent been confirmed yet
     function revokeConfirmation(uint _TransactionNumber, uint _keyNumb) public CheckKeys returns(string memory){
         string memory castVote = string(abi.encodePacked(Strings.toString(_TransactionNumber),"-",Strings.toString(_keyNumb)));
