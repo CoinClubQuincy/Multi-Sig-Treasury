@@ -84,6 +84,13 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
             }
         }       
     }
+    function checkTransactionExecution(uint _entryLength,string memory _transaction) internal returns(string memory){
+        if(_entryLength == 2){
+            return _transaction;
+        } else {
+            return "";
+        }
+    }
     //check vote summition total
     function checkTotal(uint _TransactionNumber) internal returns(bool){
         //set up voting count
@@ -129,9 +136,11 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
         } else if(_address.length == 2){
             require(ERC20(_address[1]).balanceOf(address(this)) >= _amount[0], "Not enough XRC funds in contract");
         }
+
+        
         
         if(_address.length == 1){
-            MSTrans[TotalTransactions] = MultiSigTransaction(_amount[0],_address[0],_topic[0],_messege,false,0,0,0,true,0x0000000000000000000000000000000000000000,0,"");
+            MSTrans[TotalTransactions] = MultiSigTransaction(_amount[0],_address[0],_topic[0],_messege,false,0,0,0,true,0x0000000000000000000000000000000000000000,0,checkTransactionExecution(_topic.length,_topic[1]));
             emit Proposal(TotalTransactions,"Transactionan Proposal Made");
             TotalTransactions++;
             return true;
