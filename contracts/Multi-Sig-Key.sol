@@ -4,15 +4,10 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-contract Token is ERC20 {
-    constructor(uint256 initialSupply) public ERC20("TST", "TST") {
-        _mint(msg.sender, initialSupply);
-    }
-}
 
 interface MultiSigTreasury_interface{
     function checkVote(uint _keyNumb,uint _transNumb) external returns(uint,bool,bool);
-        function submitProposal(uint [] memory _amount, address [] memory _address,string memory _topic,string memory _messege) external returns(bool);
+        function submitProposal(uint [] memory _amount, address [] memory _address,string [] memory _topic,string memory _messege) external returns(bool);
     function confirmTransaction(uint _TransactionNumber, bool _vote,uint _keyNumb) external returns(uint,uint,string memory);
     function revokeConfirmation(uint _TransactionNumber, uint _keyNumb) external returns(string memory);
 }
@@ -127,7 +122,7 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
     }  
 
     //make a submittion to move funds to the contract
-    function submitProposal(uint [] memory _amount, address [] memory _address,string memory _topic,string memory _messege) public CheckKeys returns(bool){
+    function submitProposal(uint [] memory _amount, address [] memory _address,string [] memory _topic,string memory _messege) public CheckKeys returns(bool){
         uint NFTtoken = _amount[1];
         if(_address.length == 1){
             require(address(this).balance >= _amount[0], "Not enough funds in contract");
@@ -136,17 +131,17 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
         }
         
         if(_address.length == 1){
-            MSTrans[TotalTransactions] = MultiSigTransaction(_amount[0],_address[0],_topic,_messege,false,0,0,0,true,0x0000000000000000000000000000000000000000,0,"");
+            MSTrans[TotalTransactions] = MultiSigTransaction(_amount[0],_address[0],_topic[0],_messege,false,0,0,0,true,0x0000000000000000000000000000000000000000,0,"");
             emit Proposal(TotalTransactions,"Transactionan Proposal Made");
             TotalTransactions++;
             return true;
         } else if(_address.length == 2){
-            MSTrans[TotalTransactions] = MultiSigTransaction(_amount[0],_address[0],_topic,_messege,false,0,0,0,true,_address[1],0,"");
+            MSTrans[TotalTransactions] = MultiSigTransaction(_amount[0],_address[0],_topic[0],_messege,false,0,0,0,true,_address[1],0,"");
             emit Proposal(TotalTransactions,"XRC Transactionan Proposal Made");
             TotalTransactions++;
             return true;
         }else if(_address.length == 3){
-            MSTrans[TotalTransactions] = MultiSigTransaction(_amount[0],_address[0],_topic,_messege,false,0,0,0,true,_address[1],NFTtoken,"");
+            MSTrans[TotalTransactions] = MultiSigTransaction(_amount[0],_address[0],_topic[0],_messege,false,0,0,0,true,_address[1],NFTtoken,"");
             emit Proposal(TotalTransactions,"XRC NFT Transactionan Proposal Made");
             TotalTransactions++;           
         } else {
