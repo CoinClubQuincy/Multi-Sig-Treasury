@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 
 interface MultiSigTreasury_interface{
     function checkVote(uint _keyNumb,uint _transNumb) external returns(uint,bool,bool);
-        function submitProposal(uint [] memory _amount, address [] memory _address,string [] memory _topic,string memory _messege) external returns(bool);
+    function submitProposal(uint [] memory _amount, address [] memory _address,string [] memory _topic,string memory _messege) external returns(bool);
     function confirmTransaction(uint _TransactionNumber, bool _vote,uint _keyNumb) external returns(uint,uint,string memory);
     function revokeConfirmation(uint _TransactionNumber, uint _keyNumb) external returns(string memory);
 }
