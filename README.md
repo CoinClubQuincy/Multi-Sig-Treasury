@@ -1,4 +1,3 @@
-
 # ***submitProposal()*** *Parameters*
 
     function submitProposal(uint  _ammount, address [] memory  _address,string  memory  _topic,string  memory  _messege) public CheckKeys returns(bool)
@@ -21,25 +20,21 @@ Note: 0x0000000000000000000000000000000000000000 is used as a 0 place hoder
 A blank vote where token holders can vote on a topic (no execution is made other than showing the result of a majority vote)
 - 0: (address) 0x0000000000000000000000000000000000000000 (Required!)
 - 1: (address) 0x0000000000000000000000000000000000000000 (Required!)
-- 2: N/A
 
 **XDC Transactions:**
 A simple transaction sending XDC to another address upon a completed vote
 - 0:(address) toAddress 
 - 1: N/A
-- 2: N/A
 
 **XRC20  Transactions:**
 A simple transaction sending XRC20 tokens to another address upon a completed vote
 - 0: (address) toAddress 
 - 1: (address) XRC contract address 
-- 2:N/A
 
 **XRC721&1155 Transactions:**
 A simple transaction sending a XRC721 or XRC1155  tokens to another address upon a completed vote
  - 0: (address) toAddress 
 - 1: (address) XRC contract address
-- 2: (uint) Token number 
  
 # #String [] Based Parameters
 **Topic & Message** 
