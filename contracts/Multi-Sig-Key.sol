@@ -195,9 +195,9 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
     //check to see if contract is XRC1155 or XRC721 and send token
     function XRC1155_XRC721Send(address _contractAddress, uint _tokenNumb,uint _amount) internal returns(bool){
         if(IERC721(_contractAddress).supportsInterface(0x80ac58cd) == true){
-            ERC721(_contractAddress).safeTransferFrom(address(this), _contractAddress, _tokenNumb,"[]");
+            ERC721(_contractAddress).safeTransferFrom(address(this), _contractAddress, _tokenNumb,"");
         }else{
-            ERC1155(_contractAddress).safeTransferFrom(address(this), _contractAddress, _tokenNumb,_amount,"[]");
+            ERC1155(_contractAddress).safeTransferFrom(address(this), _contractAddress, _tokenNumb,_amount,"");
         }
     }
     //remove vote if transaction hasent been confirmed yet
