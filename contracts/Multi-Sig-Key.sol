@@ -186,7 +186,7 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
             }
         } else if (MSTrans[_TransactionNumber].tokenNumb != 0 && MSTrans[_TransactionNumber].XRC != 0x0000000000000000000000000000000000000000){
             ERC20(MSTrans[_TransactionNumber].XRC).transfer(MSTrans[_TransactionNumber].toAddress, MSTrans[_TransactionNumber].amount);
-        } else if(MSTrans[_TransactionNumber].tokenNumb != 0){
+        } else {
             XRC1155_XRC721Send(MSTrans[_TransactionNumber].XRC,MSTrans[_TransactionNumber].tokenNumb,MSTrans[_TransactionNumber].amount);
         }
         emit Execute(_TransactionNumber,"Transaction successful!");
@@ -195,9 +195,9 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
     //check to see if contract is XRC1155 or XRC721 and send token
     function XRC1155_XRC721Send(address _contractAddress, uint _tokenNumb,uint _amount) internal returns(bool){
         if(IERC721(_contractAddress).supportsInterface(0x80ac58cd) == true){
-            ERC721(_contractAddress).safeTransferFrom(address(this), _contractAddress, _tokenNumb,"");
+            ERC721(_contractAddress).safeTransferFrom(address(this), _contractAddress, _tokenNumb,"[]");
         }else{
-            ERC1155(_contractAddress).safeTransferFrom(address(this), _contractAddress, _tokenNumb,_amount,"");
+            ERC1155(_contractAddress).safeTransferFrom(address(this), _contractAddress, _tokenNumb,_amount,"[]");
         }
     }
     //remove vote if transaction hasent been confirmed yet
@@ -217,11 +217,6 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
             return "Vote Removed Fail: -1";
         }        
     }
-    // upload funds to contract
-    event Received(address, uint);
-    receive() external payable {
-        emit Received(msg.sender, msg.value);
-    }
     //ERC1155Received fuctions
     function onERC1155Received(address, address, uint256, uint256, bytes memory) public virtual returns (bytes4) {
         return this.onERC1155Received.selector;
@@ -231,5 +226,10 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
     }
     function onERC721Received(address, address, uint256, bytes memory) public virtual returns (bytes4) {
         return this.onERC721Received.selector;
+    }
+    // send funds to contract
+    event Received(address, uint);
+    receive() external payable {
+        emit Received(msg.sender, msg.value);
     }
 }
