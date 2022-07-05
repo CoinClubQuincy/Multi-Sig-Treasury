@@ -131,7 +131,7 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
 
     //make a submittion to move funds to the contract
     function submitProposal(uint [] memory _amount, address [] memory _address,string [] memory _topic) public CheckKeys returns(bool){
-        if(_address.length == 1){
+        if(_address.length == 1 ){
             require(address(this).balance >= _amount[0], "Not enough funds in contract");
             MSTrans[TotalTransactions] = MultiSigTransaction(_amount[0],_address[0],_topic[0],_topic[1],false,0,0,0,true,0x0000000000000000000000000000000000000000,0,checkTransactionExecution(_topic.length,_topic[2]));
             emit Proposal(TotalTransactions,"Transactionan Proposal Made");
@@ -143,7 +143,7 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
             emit Proposal(TotalTransactions,"XRC Transactionan Proposal Made");
             TotalTransactions++;
             return true;
-        }else if(_amount.length == 2 && _amount.length == 2){
+        }else if(_address.length == 2 && _amount.length == 2){
             MSTrans[TotalTransactions] = MultiSigTransaction(_amount[0],_address[0],_topic[0],_topic[1],false,0,0,0,true,_address[1],_amount[1],"");
             emit Proposal(TotalTransactions,"XRC NFT Transactionan Proposal Made");
             TotalTransactions++;           
@@ -178,15 +178,15 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
         MSTrans[_TransactionNumber].status = true;
 
         if(MSTrans[_TransactionNumber].XRC == 0x0000000000000000000000000000000000000000 ){
-            if(_address == 0x0000000000000000000000000000000000000000){
-                emit BlankExecute(_TransactionNumber,"Vote Passed!");
-            } else{
+            if(_address != 0x0000000000000000000000000000000000000000){
                 require(address(this).balance >= MSTrans[_TransactionNumber].amount, "Not enough funds in contract transaction canceled");
-                payable(_address).transfer(MSTrans[_TransactionNumber].amount);
+                payable(_address).transfer(MSTrans[_TransactionNumber].amount);                
+            } else{
+                emit BlankExecute(_TransactionNumber,"Vote Passed!");
             }
-        } else if (MSTrans[_TransactionNumber].tokenNumb != 0 && MSTrans[_TransactionNumber].XRC != 0x0000000000000000000000000000000000000000){
+        } else if (keccak256(abi.encode(MSTrans[_TransactionNumber].call)) == keccak256(abi.encode("XRC20")) && MSTrans[_TransactionNumber].XRC != 0x0000000000000000000000000000000000000000){
             ERC20(MSTrans[_TransactionNumber].XRC).transfer(MSTrans[_TransactionNumber].toAddress, MSTrans[_TransactionNumber].amount);
-        } else {
+        } else if(keccak256(abi.encode(MSTrans[_TransactionNumber].call)) == keccak256(abi.encode("XRC20")) && MSTrans[_TransactionNumber].XRC != 0x0000000000000000000000000000000000000000){
             XRC1155_XRC721Send(MSTrans[_TransactionNumber].XRC,MSTrans[_TransactionNumber].tokenNumb,MSTrans[_TransactionNumber].amount);
         }
         emit Execute(_TransactionNumber,"Transaction successful!");
