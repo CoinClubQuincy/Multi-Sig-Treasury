@@ -42,7 +42,7 @@ A simple transaction sending a XRC721 or XRC1155  tokens to another address upon
 # #String [] Based Parameters
 **Topic & Message** 
 Topic and message of transaction or vote describing the 
-- ["Topic name" , "message",N/A]
+- ["Topic name" , "message",""]
 
  **FunctionExecution()** [Not completed]
  
