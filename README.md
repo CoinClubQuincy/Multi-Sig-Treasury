@@ -7,7 +7,10 @@
 - String: [Topic,Message, FunctionExecution() ] 
 
 # #int [] Based Parameters
-**All other transactions**
+**governance Vote**
+- [NA]
+
+**XDC & XRC20 transactions**
 - [amount,N/A]
 
 **XRC721&1155 Transactions:**
