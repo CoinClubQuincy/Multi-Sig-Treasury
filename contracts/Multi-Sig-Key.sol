@@ -132,13 +132,13 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
     //make a submittion to move funds to the contract
     function submitProposal(uint [] memory _amount, address [] memory _address,string [] memory _topic) public CheckKeys returns(bool){
         if(_address.length == 1){
-            require(ERC20(_address[1]).balanceOf(address(this)) >= _amount[0], "Not enough XRC funds in contract");
+            require(address(this).balance >= _amount[0], "Not enough funds in contract");
             MSTrans[TotalTransactions] = MultiSigTransaction(_amount[0],_address[0],_topic[0],_topic[1],false,0,0,0,true,0x0000000000000000000000000000000000000000,0,checkTransactionExecution(_topic.length,_topic[2]));
             emit Proposal(TotalTransactions,"Transactionan Proposal Made");
             TotalTransactions++;
             return true;
         } else if(_address.length == 2 && _amount.length == 1){
-            require(address(this).balance >= _amount[0], "Not enough funds in contract");
+            require(ERC20(_address[1]).balanceOf(address(this)) >= _amount[0], "Not enough XRC funds in contract");
             MSTrans[TotalTransactions] = MultiSigTransaction(_amount[0],_address[0],_topic[0],_topic[1],false,0,0,0,true,_address[1],0,"");
             emit Proposal(TotalTransactions,"XRC Transactionan Proposal Made");
             TotalTransactions++;
