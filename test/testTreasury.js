@@ -16,10 +16,12 @@ contract(MultiSigTreasury, (accounts) => {
         assert(await treasury.address !== '', "Multi Sig Launched ");
     })
     it("submitProposal()", async() =>  {
-        uint = [0,0];
-        address = ["0x0000000000000000000000000000000000000000","0x0000000000000000000000000000000000000000"];
-        string = ["Test blank Transaction","MSG"];
-        assert(await treasury.submitProposal(uint,address,string) == true, "Proposal submitted ");
+        var uint = [0];
+        var address = ["0x0000000000000000000000000000000000000000","0x0000000000000000000000000000000000000000"];
+        var string = ["Test blank Transaction","MSG",""];
+
+        const result = treasury.submitProposal(uint,address,string);
+        assert(result === true, "Proposal submitted");
     })
     //it("confirmTransaction()", async() =>  { })
     //it("revokeConfirmation()", async() =>  { })
