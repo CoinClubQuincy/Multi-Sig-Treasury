@@ -42,7 +42,10 @@ A simple transaction sending a XRC721 or XRC1155  tokens to another address upon
 # #String [] Based Parameters
 **Topic & Message** 
 Topic and message of transaction or vote describing the 
-- ["Topic name" , "message",""]
+- ["Topic name" , "message",""] : XDC transaction without function excution or blank transaction
+- ["Topic name" , "message","XRC20"] : XRC20 transaction or blank transaction
+- ["Topic name" , "message","XRC20"] : NFT transaction or blank transaction
+
 
  **FunctionExecution()** [Not completed]
  
