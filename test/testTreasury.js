@@ -10,17 +10,15 @@ contract(MultiSigTreasury, (accounts) => {
     before( async() => {
         treasury = await MultiSigTreasury.deployed(3,2,"test 1",{from: accounts[0]});
         web3.eth.sendTransaction({to:treasury.address, from:accounts[0], value:web3.utils.toWei("1", "ether")})
-        
     });
     it("Launch MultiSigTreasury contract", async() =>  {
-        assert(await treasury.address !== '', "Multi Sig Launched ");
-
+        assert(await treasury.address !== '');
     })
     it("send Keys to required address", async() =>  {
         let sendToken = await treasury.safeTransferFrom( accounts[0],  accounts[1], 1, 1, "0x0")
         let tokenB = await treasury.balanceOf(accounts[1],1)
 
-        assert.equal(tokenB.toNumber(), 1, "Both addresses have Keys");
+        assert.equal(tokenB.toNumber(), 1);
     })    
     it("execute submitProposal()", async() =>  {
         var uint = [0];
@@ -28,15 +26,20 @@ contract(MultiSigTreasury, (accounts) => {
         var string = ["Test blank Transaction","MSG",""];
 
         const result = await treasury.submitProposal(uint,address,string);
-        assert.equal(result.receipt.status, true, "Proposal submitted");
+        assert.equal(result.receipt.status, true);
     })
     it("confirmTransaction()", async() =>  { 
         const result = await treasury.confirmTransaction(0, true,0, {from: accounts[0]})
-        assert.equal(result.receipt.status, true, "Proposal submitted");
+        assert.equal(result.receipt.status, true);
+    })
+    it("Second confirmTransaction()", async() =>  { 
+        const result = await treasury.confirmTransaction(0, true,1, {from: accounts[1]})
+        assert.equal(result.receipt.status, true);
     })
     it("Finnish Vote()", async() =>  { 
-        const result = await treasury.confirmTransaction(0, true,1, {from: accounts[1]})
-        assert.equal(result.receipt.status, true, "Proposal submitted");
+        const status = await treasury.checkTransactionStatus.call(0)
+        console.log(status);
+        expect(status).to.be.true;
     })
 })
 
