@@ -10,6 +10,7 @@ interface MultiSigTreasury_interface{
     function submitProposal(uint [] memory _amount, address [] memory _address,string [] memory _topic) external returns(bool);
     function confirmTransaction(uint _TransactionNumber, bool _vote,uint _keyNumb) external returns(uint,uint,string memory);
     function revokeConfirmation(uint _TransactionNumber, uint _keyNumb) external returns(string memory);
+    function checkTransactionStatus(uint _transNumb) external returns(bool);
 }
 
 contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
@@ -21,6 +22,7 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
     event Proposal(uint _transactionNumb, string _memo);
     event Execute(uint _transactionNumb, string _memo);
     event BlankExecute(uint _TransactionNumber, string _memo);
+    event Vote(string _memo,uint _key);
     //mappings of structs
     mapping(uint => KeyListings) keys;
     mapping(string => VoteOnTransaction) vote;
@@ -113,6 +115,10 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
         require(keyStatus == true && keyNumb == _checkKey, "You must hold a Key to access this function");
         return true;
     }
+    //check is tranaction has passed
+    function checkTransactionStatus(uint _transNumb) public CheckKeys returns(bool){
+        return MSTrans[_transNumb].status;
+    }
     //checks the voting status of a particular vote on a transactions
     function checkVote(uint _keyNumb,uint _transNumb) public CheckKeys returns(uint,bool,bool){
         string memory checkStatus;
@@ -167,6 +173,7 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface{
             MSTrans[_TransactionNumber].fail++;
         }
         checkTotal(_TransactionNumber);
+        emit Vote("Vote Casted",_keyNumb);
 
         return (MSTrans[_TransactionNumber].pass,MSTrans[_TransactionNumber].fail,castVote);
     }
