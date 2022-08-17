@@ -49,25 +49,24 @@
 		},
 		"gasEstimates": null,
 		"methodIdentifiers": {
-			"checkVote(string,string)": "98530e40",
+			"checkVote(uint256,uint256)": "f3e394e8",
 			"confirmTransaction(uint256,bool,uint256)": "4eb4b1a1",
-			"revokeConfirmation(uint256,string)": "fe7a4cca",
-			"submitTransaction(uint256,address,string,string)": "4ec33593",
-			"viewTransaction(uint256)": "8916d12c"
+			"revokeConfirmation(uint256,uint256)": "f84eef0b",
+			"submitProposal(uint256[],address[],string[])": "72ed02bc"
 		}
 	},
 	"abi": [
 		{
 			"inputs": [
 				{
-					"internalType": "string",
+					"internalType": "uint256",
 					"name": "_keyNumb",
-					"type": "string"
+					"type": "uint256"
 				},
 				{
-					"internalType": "string",
+					"internalType": "uint256",
 					"name": "_transNumb",
-					"type": "string"
+					"type": "uint256"
 				}
 			],
 			"name": "checkVote",
@@ -76,6 +75,11 @@
 					"internalType": "uint256",
 					"name": "",
 					"type": "uint256"
+				},
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
 				},
 				{
 					"internalType": "bool",
@@ -115,6 +119,11 @@
 					"internalType": "uint256",
 					"name": "",
 					"type": "uint256"
+				},
+				{
+					"internalType": "string",
+					"name": "",
+					"type": "string"
 				}
 			],
 			"stateMutability": "nonpayable",
@@ -128,17 +137,17 @@
 					"type": "uint256"
 				},
 				{
-					"internalType": "string",
-					"name": "_castVote",
-					"type": "string"
+					"internalType": "uint256",
+					"name": "_keyNumb",
+					"type": "uint256"
 				}
 			],
 			"name": "revokeConfirmation",
 			"outputs": [
 				{
-					"internalType": "bool",
+					"internalType": "string",
 					"name": "",
-					"type": "bool"
+					"type": "string"
 				}
 			],
 			"stateMutability": "nonpayable",
@@ -147,76 +156,27 @@
 		{
 			"inputs": [
 				{
-					"internalType": "uint256",
-					"name": "_ammount",
-					"type": "uint256"
+					"internalType": "uint256[]",
+					"name": "_amount",
+					"type": "uint256[]"
 				},
 				{
-					"internalType": "address",
-					"name": "_toAddress",
-					"type": "address"
+					"internalType": "address[]",
+					"name": "_address",
+					"type": "address[]"
 				},
 				{
-					"internalType": "string",
+					"internalType": "string[]",
 					"name": "_topic",
-					"type": "string"
-				},
-				{
-					"internalType": "string",
-					"name": "_messege",
-					"type": "string"
+					"type": "string[]"
 				}
 			],
-			"name": "submitTransaction",
+			"name": "submitProposal",
 			"outputs": [
 				{
 					"internalType": "bool",
 					"name": "",
 					"type": "bool"
-				}
-			],
-			"stateMutability": "nonpayable",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "uint256",
-					"name": "_transactionNumb",
-					"type": "uint256"
-				}
-			],
-			"name": "viewTransaction",
-			"outputs": [
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				},
-				{
-					"internalType": "address",
-					"name": "",
-					"type": "address"
-				},
-				{
-					"internalType": "string",
-					"name": "",
-					"type": "string"
-				},
-				{
-					"internalType": "string",
-					"name": "",
-					"type": "string"
-				},
-				{
-					"internalType": "bool",
-					"name": "",
-					"type": "bool"
-				},
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
 				}
 			],
 			"stateMutability": "nonpayable",
