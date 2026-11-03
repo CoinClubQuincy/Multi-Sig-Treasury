@@ -316,14 +316,64 @@ contract MultiSigTreasuryTest is Test {
         t.confirmTransaction(0, true, 1);
     }
 
-    function test_TransferringAKeyDoesNotAllowASecondVote() public {
+    function test_AKeyHasOneLiveVote() public {
         proposeXdc(1 ether, dave);
         vote(0, alice, 0, false);
         vm.prank(alice);
-        t.safeTransferFrom(alice, dave, 0, 1, "");
-        vm.prank(dave);
         vm.expectRevert("vote has been cast already");
         t.confirmTransaction(0, true, 0);
+    }
+
+    function test_MovingAKeyEndsItsVote() public {
+        proposeXdc(1 ether, dave);
+        vote(0, alice, 0, true);
+        vm.prank(alice);
+        t.safeTransferFrom(alice, carol, 0, 1, "");
+        vote(0, bob, 1, true);
+        assertEq(dave.balance, 0);
+        vm.prank(bob);
+        assertFalse(t.checkTransactionExecuted(0));
+
+        vote(0, carol, 0, true);
+        assertEq(dave.balance, 1 ether);
+    }
+
+    function test_OnePersonCannotPassAProposalByVotingAndHandingOutKeys() public {
+        vm.startPrank(alice);
+        MultiSigTreasury solo = new MultiSigTreasury(3, 2, "uri");
+        vm.deal(address(solo), 5 ether);
+        uint[] memory amount = new uint[](1);
+        amount[0] = 5 ether;
+        address[] memory to = new address[](1);
+        to[0] = dave;
+        solo.submitProposal(amount, to, topics());
+        solo.confirmTransaction(0, true, 1);
+        solo.safeTransferFrom(alice, bob, 1, 1, "");
+        solo.safeTransferFrom(alice, carol, 2, 1, "");
+        solo.confirmTransaction(0, true, 0);
+        vm.stopPrank();
+        assertEq(dave.balance, 0);
+        assertEq(address(solo).balance, 5 ether);
+    }
+
+    function test_ANewHolderCanReplaceTheOldVote() public {
+        proposeXdc(1 ether, dave);
+        vote(0, alice, 0, false);
+        vm.prank(alice);
+        t.safeTransferFrom(alice, carol, 0, 1, "");
+        vote(0, carol, 0, true);
+        vote(0, bob, 1, true);
+        assertEq(dave.balance, 1 ether);
+    }
+
+    function test_ProposalsExpire() public {
+        proposeXdc(1 ether, dave);
+        vote(0, alice, 0, true);
+        vm.warp(block.timestamp + t.PROPOSAL_LIFETIME() + 1);
+        vm.prank(bob);
+        vm.expectRevert("Proposal has expired");
+        t.confirmTransaction(0, true, 1);
+        assertEq(dave.balance, 0);
     }
 
     function test_RevokedVoteNoLongerCounts() public {

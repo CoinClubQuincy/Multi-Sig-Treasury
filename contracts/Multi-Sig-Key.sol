@@ -33,6 +33,8 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface,ReentrancyGuard{
     uint public totalKeys =0;
     uint public TotalTransactions=0;
     uint public VotesNeededToPass;
+    uint public constant PROPOSAL_LIFETIME = 30 days;
+    mapping(uint => uint) public proposalExpiry;
     //Events for Proposals and executions
     event Proposal(uint _transactionNumb, string _memo);
     event Execute(uint _transactionNumb, string _memo);
@@ -46,6 +48,7 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface,ReentrancyGuard{
         uint Key;
         bool status;
         bool exist;
+        address voter;
     }
     //transaction request
     struct MultiSigTransaction{
@@ -90,6 +93,7 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface,ReentrancyGuard{
     }
     //check vote submission total
     function checkTotal(uint _TransactionNumber) internal returns(bool){
+        countVotes(_TransactionNumber);
         if(MSTrans[_TransactionNumber].pass >= VotesNeededToPass){
             executeTransaction(_TransactionNumber);
             return true;
@@ -101,6 +105,23 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface,ReentrancyGuard{
         }else {
             return false;
         }
+    }
+    //Counts only votes whose voter still holds the key, so moving a key ends its vote
+    function countVotes(uint _TransactionNumber) internal {
+        uint pass = 0;
+        uint fail = 0;
+        for(uint i = 0; i < totalKeys; i++){
+            VoteOnTransaction memory cast = vote[voteKey(_TransactionNumber,i)];
+            if(cast.exist && balanceOf(cast.voter,i) > 0){
+                if(cast.status){
+                    pass++;
+                }else{
+                    fail++;
+                }
+            }
+        }
+        MSTrans[_TransactionNumber].pass = pass;
+        MSTrans[_TransactionNumber].fail = fail;
     }
     //check is transaction has been closed
     function checkTransactionStatus(uint _transNumb) public view CheckKeys returns(bool){
@@ -161,6 +182,7 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface,ReentrancyGuard{
     }
     function addProposal(uint _amount, address _to, string memory _topic, string memory _message, address _token, uint _tokenNumb, string memory _kind, bytes memory _data) internal{
         MSTrans[TotalTransactions] = MultiSigTransaction(_amount,_to,_topic,_message,false,false,0,0,true,_token,_tokenNumb,_kind,_data);
+        proposalExpiry[TotalTransactions] = block.timestamp + PROPOSAL_LIFETIME;
         TotalTransactions++;
     }
     //key holders can cast votes as a key for a transaction
@@ -168,15 +190,11 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface,ReentrancyGuard{
         string memory castVote = voteKey(_TransactionNumber,_keyNumb);
         require(MSTrans[_TransactionNumber].exist == true, "Proposal does not exist");
         require(MSTrans[_TransactionNumber].status == false, "Contract Transaction Completed...no futher confrimation votes can be cast");
-        require(vote[castVote].exist == false, "vote has been cast already");
+        require(block.timestamp <= proposalExpiry[_TransactionNumber], "Proposal has expired");
+        require(vote[castVote].exist == false || balanceOf(vote[castVote].voter,_keyNumb) == 0, "vote has been cast already");
         require(balanceOf(msg.sender,_keyNumb) > 0, "you must be the holder of the key");
 
-        vote[castVote] = VoteOnTransaction(_keyNumb,_vote,true);
-        if(_vote== true){
-            MSTrans[_TransactionNumber].pass++;
-        }else{
-            MSTrans[_TransactionNumber].fail++;
-        }
+        vote[castVote] = VoteOnTransaction(_keyNumb,_vote,true,msg.sender);
         checkTotal(_TransactionNumber);
         emit Vote("Vote Casted",_keyNumb);
 
@@ -232,15 +250,10 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface,ReentrancyGuard{
         require(vote[castVote].exist == true, "you havent casted a vote");
         require(balanceOf(msg.sender,_keyNumb) > 0, "you must be the holder of the key");
         //remove vote
-        if(vote[castVote].status == true){
-            MSTrans[_TransactionNumber].pass--;
-            vote[castVote] = VoteOnTransaction(_keyNumb,false,false);
-            return "Vote Removed Pass: -1";
-        }else{
-            MSTrans[_TransactionNumber].fail--;
-            vote[castVote] = VoteOnTransaction(_keyNumb,false,false);
-            return "Vote Removed Fail: -1";
-        }
+        bool wasPass = vote[castVote].status;
+        delete vote[castVote];
+        countVotes(_TransactionNumber);
+        return wasPass ? "Vote Removed Pass: -1" : "Vote Removed Fail: -1";
     }
     //ERC1155Received fuctions
     function onERC1155Received(address, address, uint256, uint256, bytes memory) public virtual returns (bytes4) {

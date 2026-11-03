@@ -59,6 +59,8 @@ A proposal closes as soon as it can no longer pass. With 5 keys and 2 votes need
 
 An address holding several keys can vote with each of them, one vote per key.
 
+A vote counts only while the voter still holds that key. If the key moves, its vote stops counting and the new holder can cast their own. Each proposal also expires 30 days after it is created.
+
 ## Try it
 
 ```bash
@@ -85,7 +87,7 @@ forge create contracts/Multi-Sig-Key.sol:MultiSigTreasury --rpc-url https://rpc.
 
 ## What is tested
 
-[`test/foundry/MultiSigTreasury.t.sol`](test/foundry/MultiSigTreasury.t.sol) has 23 tests, including one fuzz test, and runs in CI on every push.
+[`test/foundry/MultiSigTreasury.t.sol`](test/foundry/MultiSigTreasury.t.sol) has 27 tests, including one fuzz test, and runs in CI on every push.
 
 | Tested | Not tested |
 | --- | --- |
@@ -96,6 +98,8 @@ forge create contracts/Multi-Sig-Key.sol:MultiSigTreasury --rpc-url https://rpc.
 | Votes on proposals that do not exist | |
 | Closing only once passing is impossible | |
 | One vote per key, voting with several keys, moving a key after voting, and revoking a vote | |
+| One person voting with several keys and handing them out to pass a proposal alone | |
+| Proposals expiring | |
 | Non-key holders being refused, and bad constructor values | |
 | Fuzz: a payout moves exactly the approved amount | |
 
@@ -112,6 +116,8 @@ Contracts already deployed are unaffected and keep the old behaviour.
 - The constructor refuses zero keys and a threshold of zero.
 - A proposal now closes only when passing is impossible. It used to close once no votes outnumbered the threshold.
 - A failed XDC payout now reverts, and voting on a proposal that does not exist is refused.
+- A vote now counts only while its voter holds the key. Before, someone could vote, hand the key on, and have the new holder vote again with the old vote still counted.
+- Proposals expire after 30 days (`PROPOSAL_LIFETIME`, `proposalExpiry`).
 - The older Truffle test and tracked build output were removed. Foundry is the supported test path.
 
 ## Known issues
@@ -121,6 +127,8 @@ Contracts already deployed are unaffected and keep the old behaviour.
 | Keys can vote for anything | A passed call proposal can move every asset the treasury holds. Check the target and `data` before voting |
 | A call to an address with no code succeeds | The low-level call reports success, so a mistyped target passes silently |
 | Proposal checks are only made when it is created | Funds can change before the vote finishes, in which case the deciding vote reverts until the treasury is refilled |
+| Each vote recounts every key | Gas grows with the number of keys, so a treasury with a very large key count would become expensive to vote in |
+| `checkVote` can show an old vote | It shows the last vote cast with a key, even after the key has moved and that vote has stopped counting |
 | `ViewTransactions` reads every proposal | It gets slower as proposals pile up. It is meant for off-chain reads |
 
 <details>
