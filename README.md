@@ -11,10 +11,10 @@
   <a href="#how-it-works">How it works</a> · <a href="#try-it">Try it</a> · <a href="#what-is-tested">What is tested</a> · <a href="#known-issues">Known issues</a>
 </p>
 
-Each member of the treasury holds a key, which is an ERC-1155 token. Any key holder can propose a payout or a plain vote. When enough keys vote yes, the contract pays out automatically. Because keys are tokens, a seat on the treasury can be moved by transferring its key.
+Each member of the treasury holds a key, which is an ERC-1155 token. Any key holder can propose a payment, a call to another contract or a plain vote. When enough keys vote yes, the contract carries it out automatically. Because keys are tokens, a seat on the treasury can be moved by transferring its key.
 
 > [!CAUTION]
-> Only XDC payouts work today. A passed XRC-20, XRC-721 or XRC-1155 proposal reports success and **moves nothing**. See [Known issues](#known-issues). This contract has not been audited.
+> This contract has not been audited and has not run on a real network. Call proposals can do anything the keys vote for, including sending away the whole treasury. See [Known issues](#known-issues).
 
 ## How it works
 
@@ -22,8 +22,8 @@ Each member of the treasury holds a key, which is an ERC-1155 token. Any key hol
 flowchart LR
     K[Key holder] -->|submitProposal| P[Proposal]
     P --> V{Votes reach<br/>threshold?}
-    V -->|yes votes| X[Pay XDC to the recipient]
-    V -->|no votes| C[Closed]
+    V -->|enough yes votes| X[Pay the recipient<br/>or call the target]
+    V -->|passing is impossible| C[Closed]
 ```
 
 ![Multi-Sig Treasury flow](https://user-images.githubusercontent.com/16103963/175453972-a67d397f-2dcf-4099-8d43-dafad21ab17b.png)
@@ -31,24 +31,33 @@ flowchart LR
 | Function | What it does |
 | --- | --- |
 | `constructor(totalKeys, votesNeeded, uri)` | Mints the keys to the deployer, who then hands them out |
-| `submitProposal(amount[], address[], topic[])` | Creates a proposal |
+| `submitProposal(amount[], address[], topic[])` | Creates a payment proposal or a plain vote |
+| `submitCallProposal(target, value, data, topic, message)` | Creates a proposal to call another contract |
 | `confirmTransaction(number, vote, key)` | Casts one key's vote and executes at the threshold |
 | `revokeConfirmation(number, key)` | Withdraws a vote before the proposal closes |
-| `checkVote(key, number)` and `checkTransactionStatus(number)` | Show the state of a vote or proposal |
+| `checkVote(key, number)` | Shows how a key voted |
+| `checkTransactionStatus(number)` | Shows whether a proposal is closed, whichever way it went |
+| `checkTransactionExecuted(number)` | Shows whether a proposal passed and was carried out |
 | `ViewTransactions()` | Lists all proposals |
 
 ### Writing a proposal
 
-`topic` must have three strings: `["Topic", "Message", ""]`.
+`topic` is `["Topic", "Message"]`. A third entry is accepted and ignored, so older callers keep working. The shape of the other two arrays picks the proposal:
 
 | Proposal | `amount` | `address` |
 | --- | --- | --- |
 | Plain vote, with no payment | `[0]` | `[0x0000000000000000000000000000000000000000]` |
 | Pay XDC | `[amount]` | `[recipient]` |
-| XRC-20 (not working yet) | `[amount]` | `[recipient, token]` |
-| XRC-721 or XRC-1155 (not working yet) | `[amount, tokenId]` | `[recipient, token]` |
+| XRC-20 | `[amount]` | `[recipient, token]` |
+| XRC-721 or XRC-1155 | `[amount, tokenId]` | `[recipient, token]` |
 
-If one address holds several keys, it can vote only with the first one it holds.
+For an XRC-721 the amount is ignored, so use `1`. The contract asks the token which standard it follows, and refuses the payout if the token does not say.
+
+To call another contract, encode the function and its arguments off-chain and pass them as `data`. Each proposal makes one call.
+
+A proposal closes as soon as it can no longer pass. With 5 keys and 2 votes needed, that takes 4 no votes. If a payout or call fails, the vote that triggered it reverts and the proposal stays open.
+
+An address holding several keys can vote with each of them, one vote per key.
 
 ## Try it
 
@@ -60,7 +69,7 @@ git clone --depth 1 -b v1.9.7 https://github.com/foundry-rs/forge-std lib/forge-
 forge test
 ```
 
-You need [Foundry](https://getfoundry.sh). Tests named `test_KnownIssue_*` pass because they pin a defect, so a passing run does not mean the defect is gone.
+You need [Foundry](https://getfoundry.sh).
 
 To try it on a network, use the Apothem testnet:
 
@@ -76,23 +85,43 @@ forge create contracts/Multi-Sig-Key.sol:MultiSigTreasury --rpc-url https://rpc.
 
 ## What is tested
 
-[`test/foundry/MultiSigTreasury.t.sol`](test/foundry/MultiSigTreasury.t.sol) has 7 tests and runs in CI on every push.
+[`test/foundry/MultiSigTreasury.t.sol`](test/foundry/MultiSigTreasury.t.sol) has 23 tests, including one fuzz test, and runs in CI on every push.
 
 | Tested | Not tested |
 | --- | --- |
-| A 2-of-3 vote releasing XDC | A real network, testnet or mainnet |
-| No votes closing a proposal | An independent security audit |
-| One vote per key, and revoking a vote | The older `test/testTreasury.js`, which was not run |
-| Non-key holders being refused | |
+| XDC, XRC-20, XRC-721 and XRC-1155 payouts reaching the right recipient, using real tokens | A real network, testnet or mainnet |
+| Call proposals, with and without value | An independent security audit |
+| A failed payout or call reverting the deciding vote | |
+| A recipient trying to vote again while being paid | |
+| Votes on proposals that do not exist | |
+| Closing only once passing is impossible | |
+| One vote per key, voting with several keys, moving a key after voting, and revoking a vote | |
+| Non-key holders being refused, and bad constructor values | |
+| Fuzz: a payout moves exactly the approved amount | |
+
+## Changes from earlier versions
+
+Contracts already deployed are unaffected and keep the old behaviour.
+
+- Token proposals now execute. They used to report success and move nothing.
+- `topic` now needs only two strings. The third is optional.
+- NFT payouts go to the recipient instead of the token contract.
+- New function `submitCallProposal`, and new view `checkTransactionExecuted`.
+- `ViewTransactions` returns two more fields on each proposal: `executed` and `data`.
+- `checkTransactionStatus`, `checkVote` and `ViewTransactions` are now `view`.
+- The constructor refuses zero keys and a threshold of zero.
+- A proposal now closes only when passing is impossible. It used to close once no votes outnumbered the threshold.
+- A failed XDC payout now reverts, and voting on a proposal that does not exist is refused.
+- The older Truffle test and tracked build output were removed. Foundry is the supported test path.
 
 ## Known issues
 
-| Issue | Effect | Test |
-| --- | --- | --- |
-| Token proposals never execute | The proposal stores an empty `call` value, so the transfer branches are never reached. It still emits `Transaction successful!` and the tokens stay put | `test_KnownIssue_PassedTokenProposalMovesNothing` |
-| Two topic strings revert | The contract always reads a third entry, despite the older documentation | `test_KnownIssue_TwoTopicStringsRevert` |
-| NFT send uses the wrong recipient | `XRC1155_XRC721Send` targets the token contract instead of the recipient. It is unreachable today, and it needs fixing alongside the first issue | Read from the code |
-| Function execution is unfinished | The planned call to another contract's function is not implemented | Read from the code |
+| Issue | Effect |
+| --- | --- |
+| Keys can vote for anything | A passed call proposal can move every asset the treasury holds. Check the target and `data` before voting |
+| A call to an address with no code succeeds | The low-level call reports success, so a mistyped target passes silently |
+| Proposal checks are only made when it is created | Funds can change before the vote finishes, in which case the deciding vote reverts until the treasury is refilled |
+| `ViewTransactions` reads every proposal | It gets slower as proposals pile up. It is meant for off-chain reads |
 
 <details>
 <summary><strong>More XDC projects</strong></summary>

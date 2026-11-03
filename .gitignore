@@ -4,3 +4,5 @@ node_modules/
 /lib
 /out
 /cache_forge
+/build
+/contracts/artifacts
