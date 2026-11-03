@@ -366,6 +366,36 @@ contract MultiSigTreasuryTest is Test {
         assertEq(dave.balance, 1 ether);
     }
 
+    function test_ANoVoteNeverTriggersAPayout() public {
+        proposeXdc(1 ether, dave);
+        vote(0, alice, 0, true);
+        vm.prank(alice);
+        t.safeTransferFrom(alice, carol, 0, 1, "");
+        vote(0, bob, 1, true);
+        vm.prank(carol);
+        t.safeTransferFrom(carol, alice, 0, 1, ""); // Alice's vote counts again
+        vote(0, carol, 2, false);
+        assertEq(dave.balance, 0);
+
+        vm.prank(bob);
+        t.revokeConfirmation(0, 1);
+        vote(0, bob, 1, true);
+        assertEq(dave.balance, 1 ether);
+    }
+
+    function test_AYesVoteNeverClosesAProposal() public {
+        proposeXdc(1 ether, dave);
+        vote(0, alice, 0, false);
+        vm.prank(alice);
+        t.safeTransferFrom(alice, carol, 0, 1, "");
+        vote(0, bob, 1, false);
+        vm.prank(carol);
+        t.safeTransferFrom(carol, alice, 0, 1, ""); // Alice's vote counts again
+        vote(0, carol, 2, true);
+        vm.prank(carol);
+        assertFalse(t.checkTransactionStatus(0));
+    }
+
     function test_ProposalsExpire() public {
         proposeXdc(1 ether, dave);
         vote(0, alice, 0, true);

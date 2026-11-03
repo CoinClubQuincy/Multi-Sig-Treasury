@@ -92,12 +92,14 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface,ReentrancyGuard{
         return false;
     }
     //check vote submission total
-    function checkTotal(uint _TransactionNumber) internal returns(bool){
+    //Only a yes vote can carry a proposal, and only a no vote can close it. A key moving can change
+    //the count between votes, and someone voting no must never be the one who triggers a payout.
+    function checkTotal(uint _TransactionNumber, bool _vote) internal returns(bool){
         countVotes(_TransactionNumber);
-        if(MSTrans[_TransactionNumber].pass >= VotesNeededToPass){
+        if(_vote && MSTrans[_TransactionNumber].pass >= VotesNeededToPass){
             executeTransaction(_TransactionNumber);
             return true;
-        } else if(MSTrans[_TransactionNumber].fail > totalKeys - VotesNeededToPass) {
+        } else if(!_vote && MSTrans[_TransactionNumber].fail > totalKeys - VotesNeededToPass) {
             //enough keys voted no that the proposal can no longer pass
             MSTrans[_TransactionNumber].status = true;
             emit Execute(_TransactionNumber,"Vote Failed!");
@@ -195,7 +197,7 @@ contract MultiSigTreasury is ERC1155,MultiSigTreasury_interface,ReentrancyGuard{
         require(balanceOf(msg.sender,_keyNumb) > 0, "you must be the holder of the key");
 
         vote[castVote] = VoteOnTransaction(_keyNumb,_vote,true,msg.sender);
-        checkTotal(_TransactionNumber);
+        checkTotal(_TransactionNumber,_vote);
         emit Vote("Vote Casted",_keyNumb);
 
         return (MSTrans[_TransactionNumber].pass,MSTrans[_TransactionNumber].fail,castVote);
